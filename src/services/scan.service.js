@@ -176,13 +176,10 @@ const _performWebScan = async (url) => {
 
     console.log('\n🔐 Running web security scans...');
     
-    // Run web scans
+    // Run web scans (Quick Scan - No Nuclei)
     const webResults = await scanWebUrl(url);
     
-    // Run Nuclei for advanced vulnerability detection (optional, may timeout)
-    console.log('\n🔍 Running advanced vulnerability scanner...');
-    const nucleiResults = await runNuclei(url);
-    webResults.nuclei = nucleiResults;
+    // Note: Nuclei removed from quick scan - available in deep scan only
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`✅ Web scan completed in ${duration}s\n`);

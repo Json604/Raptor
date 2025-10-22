@@ -7,10 +7,20 @@ http://localhost:3000/api/v1
 
 ---
 
-## Endpoints
+## Scan Types
 
-### 1. GitHub Repository Scan
-**Endpoint:** `POST /scan/github`
+### 🚀 Quick Scan (Free)
+Fast security scanning without advanced vulnerability detection. Perfect for quick security checks.
+
+### 🔍 Deep Scan (Paid - Coming Soon)
+Comprehensive security scanning with advanced vulnerability detection using Nuclei. Includes correlation analysis and detailed reporting.
+
+---
+
+## Quick Scan Endpoints
+
+### 1. GitHub Repository Quick Scan
+**Endpoint:** `POST /scan/quick/github`
 
 **Description:** Scans a GitHub repository for security vulnerabilities including secrets, dependencies, and configuration issues.
 
@@ -45,8 +55,8 @@ http://localhost:3000/api/v1
 
 ---
 
-### 2. Web Application Scan
-**Endpoint:** `POST /scan/web`
+### 2. Web Application Quick Scan
+**Endpoint:** `POST /scan/quick/web`
 
 **Description:** Scans a live web application for security headers, CORS, SSL, and other web vulnerabilities.
 
@@ -82,8 +92,8 @@ http://localhost:3000/api/v1
 
 ---
 
-### 3. 🌟 Full Application Scan (NEW!)
-**Endpoint:** `POST /scan/full`
+### 3. 🌟 Full Application Quick Scan
+**Endpoint:** `POST /scan/quick/full`
 
 **Description:** **RAPTOR'S KILLER FEATURE!** Combines GitHub repository scan AND web application scan into a single comprehensive security assessment. This endpoint provides:
 - **Unified Security Score** (weighted: 60% code, 40% web)
@@ -270,8 +280,45 @@ The full scan automatically detects dangerous combinations:
 
 ---
 
+## Deep Scan Endpoints (Coming Soon)
+
+### 1. Deep GitHub Repository Scan
+**Endpoint:** `POST /scan/deep/github`
+
+**Status:** 🚧 Coming Soon (Q1 2025)
+
+**Description:** Advanced GitHub repository scanning with Nuclei vulnerability detection.
+
+**Response:**
+```json
+{
+  "success": false,
+  "message": "Deep Scan feature coming soon! This will include advanced vulnerability scanning with Nuclei.",
+  "feature": "Deep GitHub Scan",
+  "status": "coming_soon",
+  "estimated_release": "Q1 2025"
+}
+```
+
+### 2. Deep Web Application Scan
+**Endpoint:** `POST /scan/deep/web`
+
+**Status:** 🚧 Coming Soon (Q1 2025)
+
+**Description:** Advanced web application scanning with Nuclei vulnerability detection.
+
+### 3. Deep Full Application Scan
+**Endpoint:** `POST /scan/deep/full`
+
+**Status:** 🚧 Coming Soon (Q1 2025)
+
+**Description:** Comprehensive security scanning with Nuclei and correlation analysis.
+
+---
+
 ## Rate Limits
-Currently no rate limits for MVP. Will be added in production.
+- **Quick Scan:** 2 scans per minute per IP
+- **Deep Scan:** Coming with paid tier
 
 ---
 
@@ -282,7 +329,14 @@ For questions or issues, contact: [Your Contact Info]
 
 ## Changelog
 
-### v1.1.0 (Current)
+### v1.2.0 (Current)
+- ✅ Reorganized API structure: Quick Scan (Free) vs Deep Scan (Paid)
+- ✅ Moved Nuclei to Deep Scan (coming soon)
+- ✅ Updated all endpoints to `/scan/quick/*` and `/scan/deep/*`
+- ✅ Added "Coming Soon" responses for Deep Scan features
+- ✅ Improved scan speed by removing Nuclei from Quick Scan
+
+### v1.1.0
 - ✅ Added `/scan/full` endpoint for combined GitHub + Web scanning
 - ✅ Implemented correlated security issue detection
 - ✅ Added smart recommendations system

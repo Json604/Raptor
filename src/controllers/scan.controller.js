@@ -123,3 +123,31 @@ export const healthCheck = async (req,res) => {
     
     res.status(isHealthy ? 200 : 503).json(healthStatus);
 }
+
+// DEEP SCAN CONTROLLERS (Paid Features - Coming Soon)
+export const deepGithubUrlScan = async (req, res, next) => {
+    res.status(503).json({
+        success: false,
+        message: "Deep Scan feature coming soon! This will include advanced vulnerability scanning with Nuclei.",
+        feature: "Deep GitHub Scan",
+        status: "coming_soon",
+    });
+}
+
+export const deepWebUrlScan = async (req, res, next) => {
+    res.status(503).json({
+        success: false,
+        message: "Deep Scan feature coming soon! This will include advanced vulnerability scanning with Nuclei.",
+        feature: "Deep Web Scan", 
+        status: "coming_soon",
+    });
+}
+
+export const deepFullApplicationScan = async (req, res, next) => {
+    res.status(503).json({
+        success: false,
+        message: "Deep Scan feature coming soon! This will include advanced vulnerability scanning with Nuclei and correlation analysis.",
+        feature: "Deep Full Application Scan",
+        status: "coming_soon", 
+    });
+}

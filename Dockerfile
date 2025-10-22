@@ -1,7 +1,7 @@
 # Raptor Security Scanner - Railway Dockerfile
 # Uses native binaries instead of Docker-in-Docker for better performance
 
-FROM node:18-bullseye
+FROM node:18-alpine
 
 # Install dependencies for downloading and running security tools
 RUN apk add --no-cache \

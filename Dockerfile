@@ -29,12 +29,13 @@ RUN echo "📦 Installing Gitleaks..." && \
     gitleaks version && \
     echo "✅ Gitleaks installed"
 
-# Install Nuclei binary
+# Install Nuclei binary (latest stable version)
 RUN echo "📦 Installing Nuclei..." && \
-    wget https://github.com/projectdiscovery/nuclei/releases/download/v3.1.0/nuclei_3.1.0_linux_amd64.zip && \
-    unzip nuclei_3.1.0_linux_amd64.zip && \
+    wget https://github.com/projectdiscovery/nuclei/releases/download/v3.3.7/nuclei_3.3.7_linux_amd64.zip && \
+    unzip nuclei_3.3.7_linux_amd64.zip && \
+    chmod +x nuclei && \
     mv nuclei /usr/local/bin/ && \
-    rm nuclei_3.1.0_linux_amd64.zip && \
+    rm -f nuclei_3.3.7_linux_amd64.zip README.md LICENSE.md && \
     nuclei -version && \
     echo "✅ Nuclei installed"
 

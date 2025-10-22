@@ -1,6 +1,6 @@
 import { githubUrlScanService, webUrlScanService, fullApplicationScanService } from "../services/scan.service.js";
-import { scanRateLimiter } from "../helpers/rateLimiter.js";
-import { scanQueue } from "../helpers/scanQueue.js";
+import { scanRateLimiter } from "../helpers/queue/rateLimiter.js";
+import { scanQueue } from "../helpers/queue/scanQueue.js";
 
 export const githubUrlScan = async (req,res,next) => {
     try {

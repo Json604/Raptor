@@ -306,8 +306,8 @@ export const runNuclei = async (url) => {
   
   // Choose command based on environment
   const command = USE_DOCKER
-    ? `docker run --rm projectdiscovery/nuclei:latest -u "${url}" -json -silent -severity critical,high,medium`
-    : `nuclei -u "${url}" -json -silent -severity critical,high,medium`;
+  ? `docker run --rm projectdiscovery/nuclei:latest -u "${url}" -severity critical,high,medium -o -`
+  : `nuclei -u "${url}" -severity critical,high,medium -o -`;
   
   return new Promise((resolve) => {
     exec(

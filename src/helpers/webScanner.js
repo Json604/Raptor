@@ -1,6 +1,9 @@
 import axios from "axios";
 import { exec } from "child_process";
 
+// Environment detection: Use Docker locally, native binaries on Railway/production
+const USE_DOCKER = process.env.USE_DOCKER === 'true';
+
 // Web URL Scanner - Scans live web applications for security issues
 export const scanWebUrl = async (url) => {
   console.log(`🔍 Scanning web application: ${url}`);
@@ -301,9 +304,14 @@ const checkMisconfigurations = (response, results) => {
 export const runNuclei = async (url) => {
   console.log('🔍 Running Nuclei vulnerability scanner...');
   
+  // Choose command based on environment
+  const command = USE_DOCKER
+    ? `docker run --rm projectdiscovery/nuclei:latest -u "${url}" -json -silent -severity critical,high,medium`
+    : `nuclei -u "${url}" -json -silent -severity critical,high,medium`;
+  
   return new Promise((resolve) => {
     exec(
-      `docker run --rm projectdiscovery/nuclei:latest -u "${url}" -json -silent -severity critical,high,medium`,
+      command,
       { maxBuffer: 50 * 1024 * 1024, timeout: 120000 }, // 2 min timeout
       (err, stdout, stderr) => {
         if (err) {

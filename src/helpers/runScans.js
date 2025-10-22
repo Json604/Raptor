@@ -1,12 +1,23 @@
 import { exec } from "child_process";
 import fs from "fs"
 
+// Environment detection: Use Docker locally, native binaries on Railway/production
+const USE_DOCKER = process.env.USE_DOCKER === 'true';
+
+console.log(`🔧 Scan mode: ${USE_DOCKER ? 'Docker' : 'Native Binaries'}`);
+
 // TruffleHog - Scans current files for secrets (optimized for Raptor)
 export const runTruffleHog = async (repoPath) => {
   console.log('🔍 Running TruffleHog scan on:', repoPath);
+  
+  // Choose command based on environment
+  const command = USE_DOCKER
+    ? `docker run --rm -v ${repoPath}:/src trufflesecurity/trufflehog:latest filesystem /src --json --no-update`
+    : `trufflehog filesystem ${repoPath} --json --no-update`;
+  
   return new Promise((resolve, reject) => {
     exec(
-      `docker run --rm -v ${repoPath}:/src trufflesecurity/trufflehog:latest filesystem /src --json --no-update`,
+      command,
       { maxBuffer: 1024 * 1024 * 50 }, // 50MB buffer for large scan results
       (err, stdout, stderr) => {
         if (err) {
@@ -58,9 +69,16 @@ export const runTruffleHog = async (repoPath) => {
 // Gitleaks - Scans current files for secrets (optimized for Raptor)
 export const runGitleaks = async (repoPath) => {
   console.log('🔍 Running Gitleaks scan on:', repoPath);
+  
+  // Choose command based on environment
+  const reportPath = `${repoPath}/gitleaks.json`;
+  const command = USE_DOCKER
+    ? `docker run --rm -v ${repoPath}:/repo zricethezav/gitleaks:latest detect --source=/repo --report-path=/repo/gitleaks.json --no-banner --no-git`
+    : `gitleaks detect --source=${repoPath} --report-path=${reportPath} --no-banner --no-git`;
+  
   return new Promise((resolve, reject) => {
     exec(
-      `docker run --rm -v ${repoPath}:/repo zricethezav/gitleaks:latest detect --source=/repo --report-path=/repo/gitleaks.json --no-banner --no-git`,
+      command,
       { maxBuffer: 1024 * 1024 * 50 }, // 50MB buffer for large scan results
       (err, stdout, stderr) => {
         console.log('✅ Gitleaks scan completed');

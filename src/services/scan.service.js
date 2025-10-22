@@ -7,9 +7,11 @@ import { scanConfigExposure } from "../helpers/configScanner.js"
 import { scanDependencies } from "../helpers/dependencyScanner.js"
 import { scanWebUrl, runNuclei } from "../helpers/webScanner.js"
 import { formatScanResults } from "../helpers/formatter.js"
+import { scanQueue } from "../helpers/scanQueue.js"
 import fs from "fs"
 
-export const githubUrlScanService = async (url) => {
+// Internal GitHub scan function (wrapped by queue)
+const _performGithubScan = async (url) => {
     console.log('\n🦅 Raptor GitHub Scan Started:', url);
     const startTime = Date.now();
     
@@ -41,7 +43,7 @@ export const githubUrlScanService = async (url) => {
     // Cleanup temp
     console.log('\n🧹 Cleaning up temporary files...');
     fs.rmSync(tempDir, { recursive: true, force: true });
-    
+
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`✅ GitHub scan completed in ${duration}s\n`);
 
@@ -63,7 +65,13 @@ export const githubUrlScanService = async (url) => {
     };
 }
 
-export const webUrlScanService = async (url) => {
+// Public GitHub scan service (with queue)
+export const githubUrlScanService = async (url) => {
+    return scanQueue.add(() => _performGithubScan(url), { type: 'github', url });
+}
+
+// Internal web scan function (wrapped by queue)
+const _performWebScan = async (url) => {
     console.log('\n🦅 Raptor Web Scan Started:', url);
     const startTime = Date.now();
     
@@ -187,6 +195,11 @@ export const webUrlScanService = async (url) => {
         scanDuration: duration,
         raw: webResults // Include raw data for advanced users
     };
+}
+
+// Public web scan service (with queue)
+export const webUrlScanService = async (url) => {
+    return scanQueue.add(() => _performWebScan(url), { type: 'web', url });
 }
 
 // COMBINED FULL APPLICATION SCAN (GitHub + Web)

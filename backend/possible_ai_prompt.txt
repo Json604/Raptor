@@ -1,0 +1,14 @@
+// Example AI prompt structure
+const aiPrompt = `
+User's website: ${url}
+Product type: ${detectedType} // e-commerce, SaaS, blog, etc.
+Security finding: ${finding}
+User question: "Do I need this for my use case?"
+
+Provide:
+1. Context-specific explanation
+2. Priority level (critical/important/nice-to-have)
+3. Risk if ignored (specific to their product)
+4. Time to fix (realistic estimate)
+5. Alternative solutions (if any)
+`;

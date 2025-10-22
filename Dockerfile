@@ -29,15 +29,16 @@ RUN echo "📦 Installing Gitleaks..." && \
     gitleaks version && \
     echo "✅ Gitleaks installed"
 
-# Install Nuclei binary (v3.4.10 - latest stable)
+# Install Nuclei binary (optional - for advanced web scanning)
+# If this fails, the app will still work (Nuclei is optional)
 RUN echo "📦 Installing Nuclei..." && \
-    wget https://github.com/projectdiscovery/nuclei/releases/download/v3.4.10/nuclei_3.4.10_linux_amd64.zip && \
-    unzip nuclei_3.4.10_linux_amd64.zip && \
+    (wget -O nuclei.zip https://github.com/projectdiscovery/nuclei/releases/download/v3.4.10/nuclei_3.4.10_linux_amd64.zip && \
+    unzip -o nuclei.zip && \
     chmod +x nuclei && \
     mv nuclei /usr/local/bin/ && \
-    rm -f nuclei_3.4.10_linux_amd64.zip README.md LICENSE.md && \
+    rm -f nuclei.zip *.md && \
     nuclei -version && \
-    echo "✅ Nuclei installed"
+    echo "✅ Nuclei installed") || echo "⚠️  Nuclei installation skipped (optional)"
 
 # Copy package files
 COPY package*.json ./

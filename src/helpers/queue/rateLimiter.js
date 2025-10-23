@@ -2,7 +2,7 @@
 // Limits scans per user/IP to prevent queue flooding
 
 class RateLimiter {
-  constructor(windowMs = 60000, maxRequests = 2) {
+  constructor(windowMs = 60000, maxRequests = 5) {
     this.windowMs = windowMs; // Time window in milliseconds
     this.maxRequests = maxRequests; // Max requests per window
     this.requests = new Map(); // Store: key -> [timestamps]
@@ -89,7 +89,7 @@ class RateLimiter {
 
 // Create rate limiter instances
 // 1 scan per minute per IP (prevents spam)
-export const scanRateLimiter = new RateLimiter(60000, 2);
+export const scanRateLimiter = new RateLimiter(60000, 5);
 
 // Export class for custom limiters
 export { RateLimiter };

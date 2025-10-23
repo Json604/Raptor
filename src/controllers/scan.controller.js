@@ -1,6 +1,7 @@
 import { githubUrlScanService, webUrlScanService, fullApplicationScanService } from "../services/scan.service.js";
 import { scanRateLimiter } from "../helpers/queue/rateLimiter.js";
 import { scanQueue } from "../helpers/queue/scanQueue.js";
+import { analyzeReportWithAI } from "../helpers/ai/analyseReport.js";
 
 export const githubUrlScan = async (req,res,next) => {
     try {
@@ -19,10 +20,13 @@ export const githubUrlScan = async (req,res,next) => {
         }
         
         const report = await githubUrlScanService(url)
+        console.log(report.raw);
+        const aiReport = await analyzeReportWithAI(report.raw);
+
         res.json({
             success: true,
             message: "GitHub repository scanned successfully",
-            data: report
+            data: {report,aiReport}
         })
     } catch (error) {
         next(error)
@@ -46,10 +50,12 @@ export const webUrlScan = async (req,res,next) => {
         }
         
         const report = await webUrlScanService(url)
+        const aiReport = await analyzeReportWithAI(report.raw);
+
         res.json({
             success: true,
             message: "Web application scanned successfully",
-            data: report
+            data: {report,aiReport}
         })
     } catch (error) {
         next(error)
@@ -81,10 +87,12 @@ export const fullApplicationScan = async (req,res,next) => {
         }
         
         const report = await fullApplicationScanService(githubUrl, webUrl)
+        const aiReport = await analyzeReportWithAI(report.raw);
+
         res.json({
             success: true,
             message: "Full application security scan completed successfully",
-            data: report
+            data: {report,aiReport}
         })
     } catch (error) {
         next(error)

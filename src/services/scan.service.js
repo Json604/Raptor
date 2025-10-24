@@ -1,17 +1,16 @@
 import isGithubUrl from "is-github-url"
-import { axiosURLverifier } from "../helpers/repo/verifyRepo.js"
+import { axiosURLverifier , axiosGithubverifier} from "../helpers/repo/verifyRepo.js"
 import { zipDownloader } from "../helpers/repo/zipRepo.js"
 import { unzipRepo } from "../helpers/repo/unzipRepo.js"
 import { runGitleaks, runTruffleHog } from "../helpers/scanners/runScans.js"
 import { scanConfigExposure } from "../helpers/scanners/configScanner.js"
 import { scanDependencies } from "../helpers/scanners/dependencyScanner.js"
-import { scanWebUrl, runNuclei } from "../helpers/scanners/webScanner.js"
+import { scanWebUrl } from "../helpers/scanners/webScanner.js"
 import { formatScanResults } from "../helpers/formatters/formatter.js"
-import { scanQueue } from "../helpers/queue/scanQueue.js"
 import fs from "fs"
 
-// Internal GitHub scan function (wrapped by queue)
-const _performGithubScan = async (url) => {
+// Internal GitHub scan function
+export const githubUrlScanService = async (url) => {
     console.log('\n🦅 Raptor GitHub Scan Started:', url);
     const startTime = Date.now();
     
@@ -22,7 +21,7 @@ const _performGithubScan = async (url) => {
     }
     console.log('✅ Valid GitHub URL');
     
-    await axiosURLverifier(url)
+    await axiosGithubverifier(url)
     console.log('✅ Repository verified and accessible');
     
     const {zipPath, tempDir} = await zipDownloader(url)
@@ -65,13 +64,9 @@ const _performGithubScan = async (url) => {
     };
 }
 
-// Public GitHub scan service (with queue)
-export const githubUrlScanService = async (url) => {
-    return scanQueue.add(() => _performGithubScan(url), { type: 'github', url });
-}
 
-// Internal web scan function (wrapped by queue)
-const _performWebScan = async (url) => {
+// Internal web scan function
+export const webUrlScanService = async (url) => {
     console.log('\n🦅 Raptor Web Scan Started:', url);
     const startTime = Date.now();
     
@@ -93,13 +88,13 @@ const _performWebScan = async (url) => {
     }
 
     // 3. Reject localhost/internal IPs for security (optional - you might want to allow these for dev)
-    const hostname = parsedUrl.hostname.toLowerCase();
-    const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '::1'];
-    if (blockedHosts.includes(hostname)) {
-        const err = new Error("Scanning localhost/internal IPs is not allowed for security reasons. Deploy your app to scan it.");
-        err.status = 400;
-        throw err;
-    }
+    // const hostname = parsedUrl.hostname.toLowerCase();
+    // const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '::1'];
+    // if (blockedHosts.includes(hostname)) {
+    //     const err = new Error("Scanning localhost/internal IPs is not allowed for security reasons. Deploy your app to scan it.");
+    //     err.status = 400;
+    //     throw err;
+    // }
 
     // 4. Reject GitHub URLs - they should use /scan/github endpoint
     if (isGithubUrl(url)) {
@@ -108,78 +103,15 @@ const _performWebScan = async (url) => {
         throw err;
     }
 
-    // 5. Reject code hosting platforms
-    const codeHostingPatterns = [
-        'gitlab.com',
-        'bitbucket.org',
-        'gitea.',
-        'codeberg.org'
-    ];
-    
-    if (codeHostingPatterns.some(pattern => url.includes(pattern))) {
-        const err = new Error("Code repository URLs are not supported for web scanning. This endpoint scans live web applications only.");
-        err.status = 400;
-        throw err;
-    }
-
-    // 6. Reject document sharing platforms and non-web-apps
-    const nonWebAppPatterns = [
-        'docs.google.com',      // Google Docs
-        'drive.google.com',     // Google Drive
-        'dropbox.com',          // Dropbox
-        'onedrive.live.com',    // OneDrive
-        'notion.so',            // Notion
-        'airtable.com',         // Airtable
-        'figma.com',            // Figma
-        'canva.com',            // Canva
-        'miro.com',             // Miro
-        'trello.com',           // Trello
-        'asana.com',            // Asana
-        'slack.com',            // Slack
-        'discord.com',          // Discord
-        'youtube.com',          // YouTube
-        'vimeo.com',            // Vimeo
-        'facebook.com',         // Facebook
-        'twitter.com',          // Twitter/X
-        'linkedin.com',         // LinkedIn
-        'instagram.com',        // Instagram
-        'tiktok.com',           // TikTok
-        'reddit.com',           // Reddit
-        'stackoverflow.com',    // Stack Overflow
-        'github.io',            // GitHub Pages (use GitHub scanner instead)
-        'netlify.app',          // Netlify (might be valid, but often just static sites)
-        'vercel.app',           // Vercel (might be valid, but often just static sites)
-        'herokuapp.com',        // Heroku (might be valid, but often just demos)
-        'surge.sh',             // Surge (static hosting)
-        'firebaseapp.com',      // Firebase hosting (might be valid)
-        'pages.dev',            // Cloudflare Pages
-        'web.app',              // Firebase web apps
-        'appspot.com'           // Google App Engine
-    ];
-    
-    if (nonWebAppPatterns.some(pattern => hostname.includes(pattern))) {
-        const err = new Error("This appears to be a document sharing platform, social media, or hosting service rather than a web application. Raptor scans actual web applications for security vulnerabilities.");
-        err.status = 400;
-        throw err;
-    }
 
     // 6. Verify the URL is actually reachable
     console.log('✅ Validating URL accessibility...');
-    try {
-        const response = await axiosURLverifier(url);
-    } catch (error) {
-        const err = new Error(`Website is not accessible: ${error.message}. Please check the URL and try again.`);
-        err.status = 400;
-        throw err;
-    }
+    await axiosURLverifier(url);
     console.log('✅ Website is accessible');
 
     console.log('\n🔐 Running web security scans...');
     
-    // Run web scans (Quick Scan - No Nuclei)
     const webResults = await scanWebUrl(url);
-    
-    // Note: Nuclei removed from quick scan - available in deep scan only
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`✅ Web scan completed in ${duration}s\n`);
@@ -194,10 +126,6 @@ const _performWebScan = async (url) => {
     };
 }
 
-// Public web scan service (with queue)
-export const webUrlScanService = async (url) => {
-    return scanQueue.add(() => _performWebScan(url), { type: 'web', url });
-}
 
 // COMBINED FULL APPLICATION SCAN (GitHub + Web)
 export const fullApplicationScanService = async (githubUrl, webUrl) => {

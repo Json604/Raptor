@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // REPO VERIFIER
-export const axiosURLverifier = async (url) => {
+export const axiosGithubverifier = async (url) => {
     const res = await axios.head(url, { validateStatus: () => true });
     if (res.status !== 200) {
         if (res.status === 404) {
@@ -17,5 +17,15 @@ export const axiosURLverifier = async (url) => {
             error.status = res.status;
             throw error;
         }
+    }
+};
+
+// URL VERIFIER
+export const axiosURLverifier = async (url) => {
+    const res = await axios.head(url, { validateStatus: () => true });
+    if (res.status !== 200){
+        const error = new Error("Website is not accessible. Please check the URL and try again.");
+        error.status = 404;
+        throw error;
     }
 };

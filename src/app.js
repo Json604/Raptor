@@ -3,8 +3,26 @@ import { PORT } from "./config/env.js"
 import scanRouter from "./routes/scan.route.js"
 import errorMiddleware from "./middlewares/error.middleware.js"
 import cors from 'cors'
+import rateLimit from "express-rate-limit"
 
 const app = express()
+
+// Global Rate Limiter — limits all incoming requests
+const globalLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 30, // Limit each IP to 60 requests per window
+  message: {
+    error: "Too many requests",
+    message: "You've exceeded the request limit. Try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false, 
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json(options.message);
+  },
+});
+
+app.use(globalLimiter);
 
 app.use(express.json())
 app.use(cors({

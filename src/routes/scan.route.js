@@ -1,13 +1,8 @@
 import { Router } from "express"
-import { 
-  githubUrlScan, webUrlScan, fullApplicationScan, healthCheck,
-  deepGithubUrlScan, deepWebUrlScan, deepFullApplicationScan 
-} from "../controllers/scan.controller.js"
+import { githubUrlScan, webUrlScan, fullApplicationScan,deepGithubUrlScan, deepWebUrlScan, deepFullApplicationScan } from "../controllers/scan.controller.js"
 
 const scanRouter = Router()
 
-// Health check endpoint
-scanRouter.get('/health', healthCheck)
 
 // QUICK SCAN ROUTES (Free - No Nuclei)
 scanRouter.post('/scan/quick/github', githubUrlScan)

@@ -11,8 +11,8 @@ export const zipDownloader = async(url) => {
         error.status = 400;
         throw error;
     }
-    const owner = repoMatch[1];
-    const repo = repoMatch[2];
+    let owner = repoMatch[1];
+    let repo = repoMatch[2].replace(/\.git$/, "");
 
     // Auto-detect default branch (main, master, etc.)
     let defaultBranch = 'main';

@@ -41,7 +41,7 @@ app.use('/api/v1', scanRouter)
 
 app.use(errorMiddleware)
 
-app.get('/', (req,res) => {res.send("Raptor Health check route.")})
+app.get('/api/v1/health', (req,res) => {res.send("Raptor Health check route.")})
 
 app.listen(PORT, () => {
     console.log(`The Server is running on http://localhost:${PORT}`);

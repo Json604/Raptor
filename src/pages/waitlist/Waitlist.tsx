@@ -59,7 +59,7 @@ function Waitlist() {
       if (response.ok) {
         // Success (201)
         setIsSubmitted(true)
-        setSuccessMessage(data.message || "🎉 You're on the list! We'll notify you when Raptor launches.")
+        setSuccessMessage("🎉 You're on the list! We'll notify you when Raptor launches.")
         setEmail("")
         
         // Reset success state after 5 seconds

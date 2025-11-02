@@ -181,18 +181,6 @@ function Waitlist() {
                 </div>
               )}
             </form>
-
-            <div className='social-proof'>
-              <div className='proof-avatars'>
-                <div className='avatar'>👤</div>
-                <div className='avatar'>👤</div>
-                <div className='avatar'>👤</div>
-                <div className='avatar'>👤</div>
-              </div>
-              <p className='proof-text'>
-                Join <strong>500+</strong> developers already on the waitlist
-              </p>
-            </div>
           </div>
         </div>
       </div>

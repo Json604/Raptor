@@ -103,7 +103,6 @@ function Waitlist() {
             
             <p className='waitlist-subheading'>
               Scan your live site for secrets, vulnerabilities, and risks in seconds.
-              <span className='highlight-text'> No login required.</span>
             </p>
 
             {/* Features Pills */}

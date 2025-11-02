@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import './Results.css';
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
-import { Download, AlertTriangle, Shield, Info } from 'lucide-react';
+import { Shield, Activity, Check } from 'lucide-react';
 
 export default function Results() {
     const [data, setData] = useState<any>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null); // Demo mode: errors disabled
     const [isLoading, setIsLoading] = useState(true);
+    const [monitoringState, setMonitoringState] = useState<'idle' | 'loading' | 'success'>('idle');
+    const [showModal, setShowModal] = useState(false);
     const location = useLocation()
+    const navigate = useNavigate()
     const {githubUrl, webUrl} = location.state || {}
-    const BASE_URL = import.meta.env.VITE_BASE_URL;
+    // const BASE_URL = import.meta.env.VITE_BASE_URL; // Demo mode: API disabled
     
     // Sample data for development
 //     useEffect(() => {
@@ -287,113 +290,102 @@ export default function Results() {
 // })
 //     }, []);
 
+    // Scroll to top when page loads
     useEffect(() => {
-        const quickScanData = async () => {
-            try {
-                setIsLoading(true);
-                setError(null);
-                
-                let endpoint = ""
-                let body = {}
-
-                if(githubUrl && !webUrl){
-                    endpoint = `${BASE_URL}/quick/github`
-                    body = {url: githubUrl}
-                }
-                else if (!githubUrl && webUrl) {
-                    endpoint = `${BASE_URL}/quick/web`;
-                    body = {url: `https://${webUrl}`};
-                } else if (githubUrl && webUrl) {
-                    endpoint = `${BASE_URL}/quick/full`;
-                    body = { githubUrl, webUrl: `https://${webUrl}`};
-                } else {
-                    setError("No input provided. Please go back and enter a valid URL.");
-                    return;
-                }
-
-                const res = await fetch(endpoint, {
-                    method: "POST",
-                    headers: {
-                    "Content-Type": "application/json",
-                    },
-                    body:JSON.stringify(body)
-                });
-
-                if (!res.ok) {
-                    // Try to get the error message from the response
-                    let errorMessage = `HTTP error! status: ${res.status}`;
-                    try {
-                        const errorJson = await res.json();
-                        if (errorJson.error) {
-                            errorMessage = errorJson.error;
-                        } else if (errorJson.message) {
-                            errorMessage = errorJson.message;
-                        }
-                    } catch (parseError) {
-                        // If we can't parse the response, use the generic error
-                        console.error("Could not parse error response:", parseError);
-                    }
-                    setError(errorMessage);
-                    return;
-                }
-
-                const json = await res.json();
-                
-                if (json.success === false) {
-                    setError(json.error || json.message || "Scan failed. Please try again.");
-                    return;
-                }
-                
-                setData(json);
-            } catch (err) {
-                console.error("Scan error:", err);
-                if (err instanceof TypeError && err.message.includes('fetch')) {
-                    setError("Network error: Unable to connect to the server. Please check your internet connection and try again.");
-                } else {
-                    setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        quickScanData();
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     }, []);
 
-    const getSeverityColor = (severity: string) => {
-        switch (severity.toLowerCase()) {
-            case 'critical': return '#ff4444';
-            case 'high': return '#ff6b35';
-            case 'medium': return '#ffa726';
-            case 'low': return '#ffeb3b';
-            default: return '#9e9e9e';
-        }
-    };
+    // DEMO MODE: Using mock data for product demonstration
+    useEffect(() => {
+        // Simulate loading state for realistic demo experience
+        setTimeout(() => {
+            setData({
+                success: true,
+                message: "Security scan completed successfully",
+                data: {
+                    url: webUrl ? `https://${webUrl}` : githubUrl || "demo-application.com",
+                    score: 68,
+                    grade: "C+",
+                    summary: {
+                        total: 5,
+                        critical: 1,
+                        high: 2,
+                        medium: 1,
+                        low: 1
+                    },
+                    message: "Your application has several security vulnerabilities that require immediate attention. We've identified critical issues that could expose sensitive data.",
+                    findings: [
+                        {
+                            title: "Insecure Content Loading via HTTP",
+                            category: "Network Security",
+                            severity: "critical",
+                            plainEnglish: "Your application loads critical resources over unencrypted HTTP connections, making them vulnerable to interception and tampering by attackers.",
+                            risk: "Man-in-the-middle attacks, data interception, credential theft",
+                            fix: "Enforce HTTPS for all external resources. Update Content-Security-Policy header to 'upgrade-insecure-requests'",
+                            aiSuggestedFix: "Add to your server config:\nContent-Security-Policy: upgrade-insecure-requests;\nStrict-Transport-Security: max-age=31536000;"
+                        },
+                        {
+                            title: "Missing Authentication Rate Limiting",
+                            category: "Authentication",
+                            severity: "high",
+                            plainEnglish: "Your login endpoints don't have rate limiting protection, allowing attackers to attempt unlimited password guesses without being blocked.",
+                            risk: "Brute force attacks, credential stuffing, account takeover",
+                            fix: "Implement rate limiting on authentication endpoints (max 5 attempts per 15 minutes)",
+                            aiSuggestedFix: "Install: npm install express-rate-limit\n\nconst rateLimit = require('express-rate-limit');\nconst loginLimiter = rateLimit({\n  windowMs: 15 * 60 * 1000,\n  max: 5\n});\napp.use('/api/login', loginLimiter);"
+                        },
+                        {
+                            title: "SQL Injection Vulnerability Detected",
+                            category: "Code Security",
+                            severity: "high",
+                            plainEnglish: "Database queries are being constructed using string concatenation with user input, creating opportunities for SQL injection attacks.",
+                            risk: "Unauthorized data access, data manipulation, database compromise",
+                            fix: "Use parameterized queries or prepared statements for all database operations",
+                            aiSuggestedFix: "Replace:\ndb.query(`SELECT * FROM users WHERE id = ${userId}`)\n\nWith:\ndb.query('SELECT * FROM users WHERE id = ?', [userId])"
+                        },
+                        {
+                            title: "Exposed API Keys in Client Code",
+                            category: "Data Exposure",
+                            severity: "medium",
+                            plainEnglish: "Sensitive API keys and tokens are hardcoded in your frontend JavaScript, making them visible to anyone who views your page source.",
+                            risk: "Unauthorized API usage, service abuse, potential data breaches",
+                            fix: "Move all API keys to server-side environment variables and use backend proxies for API calls",
+                            aiSuggestedFix: "Create .env file:\nAPI_KEY=your_secret_key\n\nServer:\nconst apiKey = process.env.API_KEY;\n\nNever expose keys in frontend code."
+                        },
+                        {
+                            title: "Weak Session Configuration",
+                            category: "Session Management",
+                            severity: "low",
+                            plainEnglish: "Session cookies are configured without secure flags, making them vulnerable to theft through JavaScript or non-HTTPS connections.",
+                            risk: "Session hijacking, unauthorized access to user accounts",
+                            fix: "Configure session cookies with HttpOnly, Secure, and SameSite=Strict flags",
+                            aiSuggestedFix: "app.use(session({\n  cookie: {\n    httpOnly: true,\n    secure: true,\n    sameSite: 'strict',\n    maxAge: 3600000\n  }\n}));"
+                        }
+                    ],
+                    scannedAt: new Date().toISOString(),
+                    scanDuration: "2.47",
+                    raw: {} // Placeholder for export functionality
+                }
+            });
+            setIsLoading(false);
+        }, 2000); // 2 second simulated loading
+    }, [githubUrl, webUrl]);
 
-    const getSeverityIcon = (severity: string) => {
-        switch (severity.toLowerCase()) {
-            case 'critical': return <AlertTriangle size={16} />;
-            case 'high': return <AlertTriangle size={16} />;
-            case 'medium': return <Shield size={16} />;
-            case 'low': return <Info size={16} />;
-            default: return <Info size={16} />;
-        }
-    };
-
-    const exportResults = () => {
-        if (!data?.data?.raw) return;
+    const handleMonitoringClick = () => {
+        setMonitoringState('loading');
         
-        const blob = new Blob([JSON.stringify(data.data.raw, null, 2)], {
-            type: 'application/json'
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `raptor-scan-results-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // After 2 seconds, show success
+        setTimeout(() => {
+            setMonitoringState('success');
+            
+            // After 0.5 seconds, show modal
+            setTimeout(() => {
+                setShowModal(true);
+            }, 500);
+        }, 2000);
+    };
+
+    const handleStartMonitoring = () => {
+        navigate('/monitoring-dashboard');
     };
 
     const formatDate = (dateString: string) => {
@@ -455,82 +447,63 @@ export default function Results() {
             <>
                 <Navbar />
                 <div className="results-container">
-                    {/* Skeleton Header */}
-                    <div className="report-header skeleton">
-                        <div className="header-content">
-                            <div className="url-section">
-                                <div className="skeleton-text skeleton-title"></div>
-                                <div className="scan-info">
-                                    <div className="skeleton-badge"></div>
-                                    <div className="skeleton-badge"></div>
-                                </div>
-                            </div>
-                            
-                            <div className="score-section">
-                                <div className="skeleton-score-circle"></div>
-                                <div className="skeleton-grade"></div>
-                            </div>
-                        </div>
-                        
-                        <div className="message-section skeleton">
-                            <div className="skeleton-text skeleton-message"></div>
-                        </div>
+                    {/* Skeleton Page Header */}
+                    <div className="skeleton-page-header">
+                        <div className="skeleton-page-title"></div>
+                        <div className="skeleton-monitoring-button"></div>
                     </div>
 
-                    {/* Skeleton Summary Chips */}
-                    <div className="summary-section">
-                        <div className="summary-chips">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className="summary-chip skeleton">
-                                    <div className="skeleton-chip-count"></div>
-                                    <div className="skeleton-chip-label"></div>
+                    {/* Skeleton Two Column Layout */}
+                    <div className="skeleton-results-layout">
+                        {/* Skeleton Left Column */}
+                        <div className="skeleton-overview-column">
+                            {/* Skeleton Summary Card */}
+                            <div className="skeleton-summary-card">
+                                <div className="skeleton-summary-label"></div>
+                                <div className="skeleton-summary-value"></div>
+                                <div className="skeleton-summary-badge">
+                                    <div className="skeleton-badge-icon"></div>
+                                    <div className="skeleton-badge-text">
+                                        <div className="skeleton-badge-label"></div>
+                                        <div className="skeleton-badge-score"></div>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                                <div className="skeleton-meta-list">
+                                    <div className="skeleton-meta-item"></div>
+                                    <div className="skeleton-meta-item"></div>
+                                    <div className="skeleton-meta-item"></div>
+                                </div>
+                            </div>
 
-                    {/* Skeleton Findings Table */}
-                    <div className="findings-section">
-                        <div className="section-header">
-                            <div className="skeleton-text skeleton-section-title"></div>
-                            <div className="skeleton-export-btn"></div>
-                        </div>
-                        
-                        <div className="table-container">
-                            <div className="skeleton-table">
-                                <div className="skeleton-table-header">
-                                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                                        <div key={i} className="skeleton-table-header-cell"></div>
+                            {/* Skeleton Risk Overview */}
+                            <div className="skeleton-risk-card">
+                                <div className="skeleton-risk-title"></div>
+                                <div className="skeleton-risk-items">
+                                    {[1, 2, 3, 4].map((i) => (
+                                        <div key={i} className="skeleton-risk-item">
+                                            <div className="skeleton-risk-count"></div>
+                                            <div className="skeleton-risk-label"></div>
+                                        </div>
                                     ))}
                                 </div>
-                                {[1, 2, 3, 4, 5].map((row) => (
-                                    <div key={row} className="skeleton-table-row">
-                                        {[1, 2, 3, 4, 5, 6].map((cell) => (
-                                            <div key={cell} className="skeleton-table-cell">
-                                                <div className="skeleton-text"></div>
-                                                <div className="skeleton-text skeleton-text-small"></div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ))}
                             </div>
                         </div>
-                    </div>
 
-                    {/* Skeleton Summary Section */}
-                    <div className="summary-section">
-                        <div className="section-header">
-                            <div className="skeleton-text skeleton-section-title"></div>
-                        </div>
-                        <div className="summary-content">
-                            <div className="summary-message skeleton">
-                                <div className="skeleton-text skeleton-paragraph"></div>
-                            </div>
-                            <div className="summary-stats">
-                                {[1, 2, 3, 4].map((i) => (
-                                    <div key={i} className="stat-item skeleton">
-                                        <div className="skeleton-stat-number"></div>
-                                        <div className="skeleton-stat-label"></div>
+                        {/* Skeleton Right Column */}
+                        <div className="skeleton-vulnerabilities-column">
+                            <div className="skeleton-section-title"></div>
+                            <div className="skeleton-vulnerabilities-list">
+                                {[1, 2, 3].map((i) => (
+                                    <div key={i} className="skeleton-vulnerability-card">
+                                        <div className="skeleton-vuln-header">
+                                            <div className="skeleton-vuln-title"></div>
+                                            <div className="skeleton-severity-badge"></div>
+                                        </div>
+                                        <div className="skeleton-vuln-category"></div>
+                                        <div className="skeleton-vuln-description"></div>
+                                        <div className="skeleton-vuln-description short"></div>
+                                        <div className="skeleton-impact-box"></div>
+                                        <div className="skeleton-code-block"></div>
                                     </div>
                                 ))}
                             </div>
@@ -547,177 +520,167 @@ export default function Results() {
         <>
             <Navbar />
             <div className="results-container">
-                {/* Header Section */}
-                <div className="report-header">
-                    <div className="header-content">
-                        <div className="url-section">
-                            <h1 className="scanned-url">{report.url}</h1>
-                            <div className="scan-info">
-                                <span className="scan-date">Scanned: {formatDate(report.scannedAt)}</span>
-                                <span className="scan-duration">Duration: {report.scanDuration}s</span>
-                            </div>
-                        </div>
-                        
-                        <div className="score-section">
-                            <div className="score-circle">
-                                <div className="score-number">{report.score}</div>
-                                <div className="score-label">Score</div>
-                            </div>
-                            <div className="grade-section">
-                                <div className="grade">{report.grade}</div>
-                                <div className="grade-label">Grade</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="message-section">
-                        <p className="scan-message">{report.message}</p>
-                    </div>
+                {/* Page Header */}
+                <div className="page-header fade-in">
+                    <h1 className="page-title">Scan Results</h1>
+                    <button 
+                        className={`monitoring-button-header ${monitoringState}`}
+                        onClick={handleMonitoringClick}
+                        disabled={monitoringState !== 'idle'}
+                    >
+                        {monitoringState === 'idle' && (
+                            <>
+                                <Shield size={16} />
+                                <span>Enable Monitoring</span>
+                            </>
+                        )}
+                        {monitoringState === 'loading' && (
+                            <>
+                                <Activity size={16} className="spin" />
+                                <span>Activating...</span>
+                            </>
+                        )}
+                        {monitoringState === 'success' && (
+                            <>
+                                <Check size={16} />
+                                <span>Ready!</span>
+                            </>
+                        )}
+                    </button>
                 </div>
 
-                {/* Summary Chips */}
-                <div className="summary-section">
-                    <div className="summary-chips">
-                        <div className="summary-chip critical">
-                            <span className="chip-count">{report.summary.critical}</span>
-                            <span className="chip-label">Critical</span>
-                        </div>
-                        <div className="summary-chip high">
-                            <span className="chip-count">{report.summary.high}</span>
-                            <span className="chip-label">High</span>
-                        </div>
-                        <div className="summary-chip medium">
-                            <span className="chip-count">{report.summary.medium}</span>
-                            <span className="chip-label">Medium</span>
-                        </div>
-                        <div className="summary-chip low">
-                            <span className="chip-count">{report.summary.low}</span>
-                            <span className="chip-label">Low</span>
-                        </div>
-                        <div className="summary-chip total">
-                            <span className="chip-count">{report.summary.total}</span>
-                            <span className="chip-label">Total</span>
+                {/* Monitoring Modal */}
+                {showModal && (
+                    <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-icon">
+                                <Activity size={48} />
+                            </div>
+                            <h2 className="modal-title">Continuous Monitoring</h2>
+                            <p className="modal-description">
+                                Monitor your site in real-time with Raptor's Continuous Monitoring. 
+                                Stay ahead of every risk.
+                            </p>
+                            <div className="modal-actions">
+                                <button className="modal-button primary" onClick={handleStartMonitoring}>
+                                    Start Monitoring
+                                </button>
+                                <button className="modal-button secondary" onClick={() => setShowModal(false)}>
+                                    Maybe Later
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
-                {/* Findings Table */}
-                <div className="findings-section">
-                    <div className="section-header">
-                        <h2>Security Findings</h2>
-                        <button className="export-btn" onClick={exportResults}>
-                            <Download size={16} />
-                            Export Raw Data
-                        </button>
+                {/* Two Column Layout */}
+                <div className="results-layout">
+                    {/* Left Column - Overview */}
+                    <div className="overview-column">
+                        {/* Scan Summary */}
+                        <div className="summary-card fade-in" style={{ animationDelay: '0.1s' }}>
+                            <div className="summary-header">
+                                <div className="summary-info">
+                                    <div className="summary-label">Application</div>
+                                    <div className="summary-value">{report.url}</div>
+                                </div>
+                                <div className="summary-badge">
+                                    <div className="badge-icon">
+                                        <Shield size={20} />
+                                    </div>
+                                    <div className="badge-content">
+                                        <div className="badge-label">Score</div>
+                                        <div className="badge-score">{report.score}<span className="score-suffix">/100</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="summary-meta">
+                                <div className="meta-group">
+                                    <span className="meta-key">Last Scan</span>
+                                    <span className="meta-value">{formatDate(report.scannedAt)}</span>
+                                </div>
+                                <div className="meta-group">
+                                    <span className="meta-key">Duration</span>
+                                    <span className="meta-value">{report.scanDuration}s</span>
+                                </div>
+                                <div className="meta-group">
+                                    <span className="meta-key">Issues</span>
+                                    <span className="meta-value">{report.summary.total}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Risk Overview */}
+                        <div className="overview-section fade-in" style={{ animationDelay: '0.15s' }}>
+                            <h3 className="overview-title">Risk Overview</h3>
+                            <div className="risk-list">
+                                <div className="risk-item">
+                                    <div className="risk-count">{report.summary.critical}</div>
+                                    <div className="risk-label">Critical</div>
+                                </div>
+                                <div className="risk-item">
+                                    <div className="risk-count">{report.summary.high}</div>
+                                    <div className="risk-label">High</div>
+                                </div>
+                                <div className="risk-item">
+                                    <div className="risk-count">{report.summary.medium}</div>
+                                    <div className="risk-label">Medium</div>
+                                </div>
+                                <div className="risk-item">
+                                    <div className="risk-count">{report.summary.low}</div>
+                                    <div className="risk-label">Low</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div className="table-container">
-                        <table className="findings-table">
-                            <thead>
-                                <tr>
-                                    <th>Vulnerability</th>
-                                    <th>Explanation</th>
-                                    <th>Severity</th>
-                                    <th>Category</th>
-                                    <th>Risk</th>
-                                    <th>Fix/Recommendation</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {report.findings.map((finding: any, index: number) => (
-                                    <tr key={index} className="finding-row">
-                                        <td className="vulnerability-cell">
-                                            <div className="vulnerability-title">{finding.title}</div>
-                                        </td>
-                                        <td className="explanation-cell">
-                                            <p>{finding.plainEnglish}</p>
-                                        </td>
-                                        <td className="severity-cell">
-                                            <div 
-                                                className="severity-badge"
-                                                style={{ backgroundColor: getSeverityColor(finding.severity) }}
-                                            >
-                                                {getSeverityIcon(finding.severity)}
-                                                <span>{finding.severity}</span>
+
+                    {/* Right Column - Vulnerabilities */}
+                    <div className="vulnerabilities-column">
+                        <h2 className="section-title fade-in" style={{ animationDelay: '0.2s' }}>Vulnerabilities & Fixes</h2>
+                        <div className="vulnerabilities-list">
+                            {report.findings.map((finding: any, index: number) => (
+                                <div key={index} className="vulnerability-card fade-in" style={{ animationDelay: `${0.25 + index * 0.08}s` }}>
+                                    <div className="vulnerability-header">
+                                        <div className="vulnerability-top">
+                                            <h3 className="vulnerability-title">{finding.title}</h3>
+                                            <div className={`severity-badge severity-${finding.severity.toLowerCase()}`}>
+                                                {finding.severity}
                                             </div>
-                                        </td>
-                                        <td className="category-cell">
-                                            <span className="category-badge">{finding.category}</span>
-                                        </td>
-                                        <td className="risk-cell">
-                                            <p>{finding.risk}</p>
-                                        </td>
-                                        <td className="fix-cell">
-                                            <p>{finding.fix}</p>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    {/* Mobile Card Layout */}
-                    <div className="mobile-findings">
-                        {report.findings.map((finding: any, index: number) => (
-                            <div key={index} className="finding-card">
-                                <div className="card-header">
-                                    <div className="card-title">
-                                        <h3>{finding.title}</h3>
-                                        <span className="category-badge">{finding.category}</span>
+                                        </div>
+                                        <div className="vulnerability-category">{finding.category}</div>
                                     </div>
-                                    <div 
-                                        className="severity-badge"
-                                        style={{ backgroundColor: getSeverityColor(finding.severity) }}
-                                    >
-                                        {getSeverityIcon(finding.severity)}
-                                        <span>{finding.severity}</span>
-                                    </div>
-                                </div>
-                                <div className="card-content">
-                                    <div className="card-section">
-                                        <h4>What this means:</h4>
-                                        <p>{finding.plainEnglish}</p>
-                                    </div>
-                                    <div className="card-section">
-                                        <h4>Risk:</h4>
-                                        <p>{finding.risk}</p>
-                                    </div>
-                                    <div className="card-section">
-                                        <h4>How to fix:</h4>
-                                        <p>{finding.fix}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
 
-                {/* Summary Section */}
-                <div className="summary-section">
-                    <div className="section-header">
-                        <h2>Security Summary</h2>
-                    </div>
-                    <div className="summary-content">
-                        <div className="summary-message">
-                            <p>{report.message}</p>
-                        </div>
-                        <div className="summary-stats">
-                            <div className="stat-item">
-                                <span className="stat-number">{report.summary.critical}</span>
-                                <span className="stat-label">Critical Issues</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-number">{report.summary.high}</span>
-                                <span className="stat-label">High Priority</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-number">{report.summary.medium}</span>
-                                <span className="stat-label">Medium Priority</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-number">{report.summary.low}</span>
-                                <span className="stat-label">Low Priority</span>
-                            </div>
+                                    <div className="vulnerability-content">
+                                        <p className="vulnerability-description">{finding.plainEnglish}</p>
+                                        
+                                        <div className="impact-section">
+                                            <div className="impact-label">Impact</div>
+                                            <div className="impact-text">{finding.risk}</div>
+                                        </div>
+
+                                        <div className="fix-section">
+                                            <div className="fix-header">
+                                                <div className="fix-label">AI Suggested Fix</div>
+                                                <button 
+                                                    className="copy-fix-button"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(finding.aiSuggestedFix);
+                                                        const btn = document.activeElement as HTMLButtonElement;
+                                                        const originalText = btn.textContent;
+                                                        btn.textContent = '✓ Copied';
+                                                        setTimeout(() => {
+                                                            btn.textContent = originalText;
+                                                        }, 2000);
+                                                    }}
+                                                >
+                                                    Copy
+                                                </button>
+                                            </div>
+                                            <pre className="fix-code">{finding.aiSuggestedFix}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>

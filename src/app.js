@@ -4,6 +4,8 @@ import scanRouter from "./routes/scan.route.js"
 import errorMiddleware from "./middlewares/error.middleware.js"
 import cors from 'cors'
 import rateLimit from "express-rate-limit"
+import waitlistRouter from "./routes/waitlist.route.js"
+import connectToDB from "./databse/db.js"
 
 const app = express()
 
@@ -38,11 +40,14 @@ app.use(cors({
 }));
 
 app.use('/api/v1', scanRouter)
+app.use('/api/v1', waitlistRouter)
 
 app.use(errorMiddleware)
 
 app.get('/api/v1/health', (req,res) => {res.send("Raptor Health check route.")})
 
-app.listen(PORT, () => {
+app.listen(PORT, async() => {
     console.log(`The Server is running on http://localhost:${PORT}`);
+    
+    await connectToDB()
 })

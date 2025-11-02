@@ -3,7 +3,6 @@ import './MonitoringDashboard.css';
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import { 
-    Shield, 
     Activity, 
     Globe, 
     AlertTriangle, 
@@ -24,6 +23,9 @@ export default function MonitoringDashboard() {
         { id: 3, type: 'success', message: 'Vulnerability patch applied successfully', time: '1 hour ago', new: false },
         { id: 4, type: 'warning', message: 'Unusual traffic spike from unknown region', time: '2 hours ago', new: false },
     ]);
+    setSecurityLevel(85);
+    setAlerts([])
+
 
     const [liveStats, setLiveStats] = useState({
         activeUsers: 1247,

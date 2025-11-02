@@ -132,6 +132,7 @@ function Waitlist() {
 
             <form className='waitlist-form' onSubmit={handleSubmit}>
               <div className={`email-input-container ${emailError ? 'error' : ''} ${isSubmitted ? 'success' : ''}`}>
+                {/* <div className='inputBox'> */}
                 <Mail size={20} className='email-icon' />
                 <input
                   type="email"
@@ -141,6 +142,7 @@ function Waitlist() {
                   disabled={isSubmitted || isLoading}
                   className='email-input'
                 />
+                {/* </div> */}
                 <button 
                   type='submit' 
                   className={`submit-button ${isSubmitted ? 'submitted' : ''} ${isLoading ? 'loading' : ''}`}

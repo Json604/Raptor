@@ -92,12 +92,15 @@ function Waitlist() {
 
   return (
     <>
-      <Navbar links={[
-        { label: 'How', href: '#how' },
-        { label: 'Contact', href: '#contact' }
-      ]} />
+      <Navbar 
+        links={[
+          { label: 'How', href: '#how' },
+          { label: 'Contact', href: '#contact' }
+        ]}
+        brandHref='#top'
+      />
       <BgBeam />
-      <div className='waitlist-container'>
+      <div id='top' className='waitlist-container'>
         <div className='waitlist-content'>
           {/* Hero Section */}
           <div className='waitlist-hero'>

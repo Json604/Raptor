@@ -10,9 +10,10 @@ interface NavLink {
 
 interface NavbarProps {
     links?: NavLink[];
+    brandHref?: string;
 }
 
-function Navbar({ links }: NavbarProps) {
+function Navbar({ links, brandHref = '/#home' }: NavbarProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     const toggleMenu = () => {
@@ -30,7 +31,7 @@ function Navbar({ links }: NavbarProps) {
 
     return(
         <div className='navbar'>
-            <a href='/#home' className='brand'>
+            <a href={brandHref} className='brand'>
                 <img src={logo} width={35} height={35} alt='logo'/>
                 <p style={{fontSize:'1.6rem'}}>Raptor</p>
             </a>

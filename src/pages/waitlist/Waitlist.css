@@ -3,7 +3,7 @@ html {
     scroll-behavior: smooth;
 }
 
-#how, #contact {
+#top, #how, #contact {
     scroll-margin-top: 100px;
 }
 

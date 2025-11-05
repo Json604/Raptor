@@ -3,12 +3,30 @@ import logo from '../assets/logo.svg'
 import { useState } from 'react'
 // import { Link } from 'react-router-dom'
 
-function Navbar() {
+interface NavLink {
+    label: string;
+    href: string;
+}
+
+interface NavbarProps {
+    links?: NavLink[];
+}
+
+function Navbar({ links }: NavbarProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen)
     }
+
+    // Default links for home page
+    const defaultLinks: NavLink[] = [
+        { label: 'Why', href: '/#why' },
+        { label: 'Tools', href: '/#tools' },
+        { label: 'Contact', href: '/#contact' },
+    ]
+
+    const navLinks = links || defaultLinks
 
     return(
         <div className='navbar'>
@@ -19,9 +37,9 @@ function Navbar() {
             
             {/* Desktop Menu */}
             <div className='sections desktop-menu'>
-                <a href='/#why'>Why</a>
-                <a href='/#tools'>Tools</a>
-                <a href='/#contact'>Contact</a>
+                {navLinks.map((link, index) => (
+                    <a key={index} href={link.href}>{link.label}</a>
+                ))}
             </div>
             
             {/* Desktop Sign-in */}
@@ -37,9 +55,11 @@ function Navbar() {
             {/* Mobile Menu */}
             {isMenuOpen && (
                 <div className='mobile-menu'>
-                    <a href='/#why' onClick={() => setIsMenuOpen(false)}>Why</a>
-                    <a href='/#tools' onClick={() => setIsMenuOpen(false)}>Tools</a>
-                    <a href='/#contact' onClick={() => setIsMenuOpen(false)}>Contact</a>
+                    {navLinks.map((link, index) => (
+                        <a key={index} href={link.href} onClick={() => setIsMenuOpen(false)}>
+                            {link.label}
+                        </a>
+                    ))}
                     {/* <Link to='/signup'> */}
                     {/* <div className='mobile-signin'>Sign-up</div> */}
                     {/* </Link> */}

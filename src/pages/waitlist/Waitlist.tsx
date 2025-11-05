@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './Waitlist.css'
 import BgBeam from '../../components/BgBeam'
+import Navbar from '../../components/Navbar'
 import { Mail, ArrowRight, Shield, Zap, Lock, Search, FileCheck, Wrench, Bell } from 'lucide-react'
 
 
@@ -91,6 +92,10 @@ function Waitlist() {
 
   return (
     <>
+      <Navbar links={[
+        { label: 'How', href: '#how' },
+        { label: 'Contact', href: '#contact' }
+      ]} />
       <BgBeam />
       <div className='waitlist-container'>
         <div className='waitlist-content'>
@@ -187,7 +192,7 @@ function Waitlist() {
       </div>
 
       {/* How It Works Section */}
-      <div className='how-section'>
+      <div id='how' className='how-section'>
         <div className='how-content'>
           <div className='how-header'>
             <h2>How It Works</h2>
@@ -281,7 +286,7 @@ function Waitlist() {
       </div>
 
       {/* Footer */}
-      <footer className='waitlist-footer'>
+      <footer id='contact' className='waitlist-footer'>
         <div className='footer-content'>
           <div className='footer-brand'>
             <h3>Raptor</h3>

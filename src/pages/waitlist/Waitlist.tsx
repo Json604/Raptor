@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './Waitlist.css'
 import BgBeam from '../../components/BgBeam'
-import { Mail, ArrowRight, Shield, Zap, Lock } from 'lucide-react'
+import { Mail, ArrowRight, Shield, Zap, Lock, Search, FileCheck, Wrench, Bell } from 'lucide-react'
 
 
 function Waitlist() {
@@ -102,7 +102,7 @@ function Waitlist() {
             </h1>
             
             <p className='waitlist-subheading'>
-              Scan your live site for secrets, vulnerabilities, and risks in seconds.
+              Scan your live site and Github repo for secrets, vulnerabilities, and risks in seconds.
             </p>
 
             {/* Features Pills */}
@@ -184,6 +184,100 @@ function Waitlist() {
             </form>
           </div>
         </div>
+      </div>
+
+      {/* How It Works Section */}
+      <div className='how-section'>
+        <div className='how-content'>
+          <div className='how-header'>
+            <h2>How It Works</h2>
+            <p className='how-subtitle'>Get your security report in 4 simple steps</p>
+          </div>
+
+          <div className='how-steps'>
+            <div className='step-item'>
+              <div className='step-number'>1</div>
+              <div className='step-icon'>
+                <Search size={32} />
+              </div>
+              <div className='step-content'>
+                <h4>Paste Your URL</h4>
+                <p>Drop your deployed app link or GitHub repo URL. No signup, no waiting—just paste and go.</p>
+              </div>
+            </div>
+
+            <div className='step-arrow'>→</div>
+
+            <div className='step-item'>
+              <div className='step-number'>2</div>
+              <div className='step-icon'>
+                <FileCheck size={32} />
+              </div>
+              <div className='step-content'>
+                <h4>Get Instant Analysis</h4>
+                <p>Our scanners instantly analyze your site or GitHub repo for vulnerabilities, exposed secrets, and configuration risks.</p>
+              </div>
+            </div>
+
+            <div className='step-arrow'>→</div>
+
+            <div className='step-item'>
+              <div className='step-number'>3</div>
+              <div className='step-icon'>
+                <Wrench size={32} />
+              </div>
+              <div className='step-content'>
+                <h4>Fix with Confidence</h4>
+                <p>Get plain-English explanations and copy-paste fixes. No technical jargon, just actionable steps.</p>
+              </div>
+            </div>
+
+            <div className='step-arrow'>→</div>
+
+            <div className='step-item'>
+              <div className='step-number'>4</div>
+              <div className='step-icon'>
+                <Shield size={32} />
+              </div>
+              <div className='step-content'>
+                <h4>Stay Protected</h4>
+                <p>Enable continuous monitoring to watch your app 24/7. Get instant alerts when new vulnerabilities emerge.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className='how-cta'>
+            <p>Ready to protect your app with Raptor?</p>
+            <button 
+              className='cta-button'
+              onClick={() => {
+                const formSection = document.querySelector('.waitlist-form-section');
+                if (formSection) {
+                  formSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'center'
+                  });
+                  // Focus on email input after scroll
+                  setTimeout(() => {
+                    const emailInput = document.querySelector('.email-input') as HTMLInputElement;
+                    if (emailInput) {
+                      emailInput.focus();
+                    }
+                  }, 500);
+                }
+              }}
+            >
+              <Bell size={20} />
+              <span>Join the Waitlist</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Closing Vision */}
+      <div className='vision-section'>
+        <p className='vision-text'>The world is moving to AI-built software.</p>
+        <p className='vision-text'>Raptor is building the security layer that moves with it.</p>
       </div>
 
       {/* Footer */}

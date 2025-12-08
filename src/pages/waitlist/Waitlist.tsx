@@ -11,7 +11,10 @@ function Waitlist() {
   const [isLoading, setIsLoading] = useState(false)
   const [emailError, setEmailError] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
-  const WAITLIST_URL = import.meta.env.VITE_WAITLIST_URL;
+  // const WAITLIST_URL = import.meta.env.VITE_WAITLIST_URL;
+  ///////// TEMP ///////////////
+  setIsSubmitted(false)
+  ////////////////////////
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -46,48 +49,48 @@ function Waitlist() {
     // Submit to backend
     setIsLoading(true)
     
-    try {
-      const response = await fetch(`${WAITLIST_URL}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim() }),
-      })
+    // try {
+    //   const response = await fetch(`${WAITLIST_URL}`, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({ email: email.trim() }),
+    //   })
 
-      const data = await response.json()
+    //   const data = await response.json()
 
-      if (response.ok) {
-        // Success (201)
-        setIsSubmitted(true)
-        setSuccessMessage("🎉 You're on the list! We'll notify you when Raptor launches.")
-        setEmail("")
+    //   if (response.ok) {
+    //     // Success (201)
+    //     setIsSubmitted(true)
+    //     setSuccessMessage("🎉 You're on the list! We'll notify you when Raptor launches.")
+    //     setEmail("")
         
-        // Reset success state after 5 seconds
-        setTimeout(() => {
-          setIsSubmitted(false)
-          setSuccessMessage("")
-        }, 5000)
-      } else {
-        // Handle error responses
-        if (response.status === 400) {
-          // Validation error
-          setEmailError(data.message || "Please enter a valid email address")
-        } else if (response.status === 409) {
-          // Duplicate email
-          setEmailError(data.message || "You already joined the waitlist!")
-        } else {
-          // Other errors
-          setEmailError(data.message || "Something went wrong. Please try again.")
-        }
-      }
-    } catch (error) {
-      // Network or other errors
-      console.error("Waitlist submission error:", error)
-      setEmailError("Unable to connect to server. Please check your internet connection and try again.")
-    } finally {
-      setIsLoading(false)
-    }
+    //     // Reset success state after 5 seconds
+    //     setTimeout(() => {
+    //       setIsSubmitted(false)
+    //       setSuccessMessage("")
+    //     }, 5000)
+    //   } else {
+    //     // Handle error responses
+    //     if (response.status === 400) {
+    //       // Validation error
+    //       setEmailError(data.message || "Please enter a valid email address")
+    //     } else if (response.status === 409) {
+    //       // Duplicate email
+    //       setEmailError(data.message || "You already joined the waitlist!")
+    //     } else {
+    //       // Other errors
+    //       setEmailError(data.message || "Something went wrong. Please try again.")
+    //     }
+    //   }
+    // } catch (error) {
+    //   // Network or other errors
+    //   console.error("Waitlist submission error:", error)
+    //   setEmailError("Unable to connect to server. Please check your internet connection and try again.")
+    // } finally {
+    //   setIsLoading(false)
+    // }
   }
 
   return (
@@ -139,7 +142,7 @@ function Waitlist() {
             
             <form
             className='waitlist-form' 
-            // onSubmit={handleSubmit}
+            onSubmit={handleSubmit}
             action={"https://getlaunchlist.com/s/W6G7bl"}
             method='POST'
             >

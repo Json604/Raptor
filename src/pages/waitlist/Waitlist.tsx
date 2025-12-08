@@ -12,9 +12,7 @@ function Waitlist() {
   const [emailError, setEmailError] = useState("")
   const [successMessage, setSuccessMessage] = useState("")
   // const WAITLIST_URL = import.meta.env.VITE_WAITLIST_URL;
-  ///////// TEMP ///////////////
-  setIsSubmitted(false)
-  ////////////////////////
+
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -30,6 +28,10 @@ function Waitlist() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    ///////// TEMP ///////////////
+    setIsSubmitted(false)
+    ////////////////////////
     
     // Clear previous messages
     setEmailError("")

@@ -136,18 +136,24 @@ function Waitlist() {
             <p className='form-subtitle'>
               Be the first to know when Raptor launches. Get early access and exclusive updates.
             </p>
-
-            <form className='waitlist-form' onSubmit={handleSubmit}>
+            
+            <form
+            className='waitlist-form' 
+            // onSubmit={handleSubmit}
+            action={"https://getlaunchlist.com/s/W6G7bl"}
+            method='POST'
+            >
               <div className={`email-input-container ${emailError ? 'error' : ''} ${isSubmitted ? 'success' : ''}`}>
                 {/* <div className='inputBox'> */}
                 <Mail size={20} className='email-icon' />
                 <input
-                  type="email"
-                  placeholder='Enter your email address'
-                  value={email}
-                  onChange={handleEmailChange}
-                  disabled={isSubmitted || isLoading}
-                  className='email-input'
+                name='email'
+                type="email"
+                placeholder='Enter your email address'
+                value={email}
+                onChange={handleEmailChange}
+                disabled={isSubmitted || isLoading}
+                className='email-input'
                 />
                 {/* </div> */}
                 <button 

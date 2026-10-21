@@ -16,7 +16,8 @@ import { SEVERITY_LABEL, formatDuration, hostOf, toFixPrompt } from '../lib/form
 import type { Job, Severity, Source } from '../lib/types'
 import './Scan.css'
 
-const POLL_MS = 900
+// Faster while scanning (steps change every few seconds), slower while waiting in line.
+const POLL_MS = { running: 900, queued: 2000 }
 const STORAGE_PREFIX = 'raptor:scan:'
 
 // Finished reports are also kept in this browser, so a link still opens after
@@ -306,7 +307,7 @@ export default function Scan() {
         failures = 0
         setJob(next)
         if (next.status === 'done') saveReport(next)
-        if (next.status === 'queued' || next.status === 'running') timer = window.setTimeout(poll, POLL_MS)
+        if (next.status === 'queued' || next.status === 'running') timer = window.setTimeout(poll, POLL_MS[next.status])
       } catch (err) {
         if (cancelled) return
         if (err instanceof ApiError && err.status === 404) {

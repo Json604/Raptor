@@ -48,11 +48,11 @@ export const startScan = ({ url, repo }) => {
         },
         steps: [...(website ? WEBSITE_STEPS : []), ...(repoRef ? REPO_STEPS : [])],
         lane: repoRef ? 'repo' : 'web',
-        task: async ({ step }) => {
+        task: async ({ step, signal }) => {
             const startedAt = Date.now()
             const [websiteResult, codeResult] = await Promise.allSettled([
-                website ? scanWebsite(website.toString(), { step: (key, state) => step(`web.${key}`, state) }) : null,
-                repoRef ? scanRepository(repoRef, { step: (key, state) => step(`repo.${key}`, state) }) : null,
+                website ? scanWebsite(website.toString(), { signal, step: (key, state) => step(`web.${key}`, state) }) : null,
+                repoRef ? scanRepository(repoRef, { signal, step: (key, state) => step(`repo.${key}`, state) }) : null,
             ])
 
             const failures = [websiteResult, codeResult].filter(result => result.status === 'rejected')

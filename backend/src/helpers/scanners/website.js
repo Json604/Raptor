@@ -220,7 +220,7 @@ const checkHeaders = (page, platform, findings, passed) => {
     return missing
 }
 
-const checkTransport = async (page, findings, passed) => {
+const checkTransport = async (page, findings, passed, signal) => {
     if (!page.url.startsWith('https://')) {
         findings.push({
             id: 'no-https',
@@ -242,7 +242,7 @@ const checkTransport = async (page, findings, passed) => {
         const insecure = new URL(page.url)
         insecure.protocol = 'http:'
         insecure.port = ''
-        const response = await safeGet(insecure.toString(), { timeout: 6000, maxBytes: 256 * 1024, maxRedirects: 3 })
+        const response = await safeGet(insecure.toString(), { timeout: 6000, maxBytes: 256 * 1024, maxRedirects: 3, signal })
         if (response.url.startsWith('http://') && response.status < 400) {
             findings.push({
                 id: 'http-not-redirected',
@@ -313,9 +313,9 @@ const checkCookies = (page, findings, passed) => {
 
 const PROBE_ORIGIN = 'https://raptor-cors-check.example'
 
-const checkCors = async (page, findings, passed) => {
+const checkCors = async (page, findings, passed, signal) => {
     try {
-        const response = await safeGet(page.url, { headers: { Origin: PROBE_ORIGIN }, timeout: 8000, maxBytes: 512 * 1024, maxRedirects: 0 })
+        const response = await safeGet(page.url, { headers: { Origin: PROBE_ORIGIN }, timeout: 8000, maxBytes: 512 * 1024, maxRedirects: 0, signal })
         const allowOrigin = response.headers['access-control-allow-origin']
         const allowCredentials = String(response.headers['access-control-allow-credentials']).toLowerCase() === 'true'
         if (allowOrigin === PROBE_ORIGIN && allowCredentials) {
@@ -363,12 +363,12 @@ const EXPOSED_FILES = [
     { path: '/.git/HEAD', kind: 'git' },
 ]
 
-const checkExposedFiles = async (page, findings, passed, coverage) => {
+const checkExposedFiles = async (page, findings, passed, coverage, signal) => {
     const origin = new URL(page.url).origin
     let checked = 0
     const results = await Promise.all(EXPOSED_FILES.map(async (probe) => {
         try {
-            const response = await safeGet(origin + probe.path, { timeout: 6000, maxBytes: 64 * 1024, maxRedirects: 0 })
+            const response = await safeGet(origin + probe.path, { timeout: 6000, maxBytes: 64 * 1024, maxRedirects: 0, signal })
             checked++
             if (response.status !== 200) return null
             const body = response.body.trim()
@@ -432,7 +432,7 @@ const sameSite = (scriptUrl, pageUrl) => {
     return a === b || root(a) === root(b)
 }
 
-const checkBundles = async (page, findings, passed, coverage) => {
+const checkBundles = async (page, findings, passed, coverage, signal) => {
     const sources = new Set()
     for (const match of page.body.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["']/gi)) sources.add(match[1])
     for (const match of page.body.matchAll(/<link\b[^>]*rel=["']modulepreload["'][^>]*href=["']([^"']+)["']/gi)) sources.add(match[1])
@@ -448,7 +448,7 @@ const checkBundles = async (page, findings, passed, coverage) => {
 
     await Promise.all(scripts.map(async (url) => {
         try {
-            const response = await safeGet(url, { timeout: 10000, maxBytes: 8 * 1024 * 1024, headers: { Accept: '*/*' } })
+            const response = await safeGet(url, { timeout: 10000, maxBytes: 8 * 1024 * 1024, headers: { Accept: '*/*' }, signal })
             if (response.status === 200) {
                 bodies.push({ url, text: response.body })
                 fetched++
@@ -526,7 +526,7 @@ const checkBundles = async (page, findings, passed, coverage) => {
     if (!real.length) passed.push({ source: 'website', title: `No secret keys in your JavaScript (${fetched + 1} file${fetched ? 's' : ''} checked)` })
 }
 
-export const scanWebsite = async (input, { step = () => {} } = {}) => {
+export const scanWebsite = async (input, { step = () => {}, signal } = {}) => {
     const target = normalizeWebsiteUrl(input)
     const findings = []
     const passed = []
@@ -535,7 +535,7 @@ export const scanWebsite = async (input, { step = () => {} } = {}) => {
     step('site', 'active')
     let page
     try {
-        page = await safeGet(target.toString())
+        page = await safeGet(target.toString(), { signal })
     } catch (error) {
         step('site', 'failed')
         throw describeNetworkError(error)
@@ -548,18 +548,18 @@ export const scanWebsite = async (input, { step = () => {} } = {}) => {
     const platform = detectPlatform(page.headers, page.body)
 
     step('headers', 'active')
-    await checkTransport(page, findings, passed)
+    await checkTransport(page, findings, passed, signal)
     const missingHeaders = checkHeaders(page, platform, findings, passed)
     checkCookies(page, findings, passed)
-    await checkCors(page, findings, passed)
+    await checkCors(page, findings, passed, signal)
     step('headers', 'done')
 
     step('exposed', 'active')
-    await checkExposedFiles(page, findings, passed, coverage)
+    await checkExposedFiles(page, findings, passed, coverage, signal)
     step('exposed', 'done')
 
     step('bundle', 'active')
-    await checkBundles(page, findings, passed, coverage)
+    await checkBundles(page, findings, passed, coverage, signal)
     step('bundle', 'done')
 
     const missingNames = Object.keys(missingHeaders)

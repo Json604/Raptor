@@ -1,5 +1,8 @@
 import { randomUUID } from "crypto";
-import { MAX_CONCURRENT_REPO_SCANS, MAX_CONCURRENT_WEB_SCANS, MAX_QUEUED_SCANS } from "../config/env.js";
+import {
+    MAX_CONCURRENT_REPO_SCANS, MAX_CONCURRENT_WEB_SCANS, MAX_QUEUED_SCANS,
+    REPO_SCAN_TIME_LIMIT_MS, WEB_SCAN_TIME_LIMIT_MS,
+} from "../config/env.js";
 
 // Scans run in the background and the browser polls for progress. That keeps
 // requests short (no proxy timeouts on 40-second repo scans) and lets the UI show
@@ -13,8 +16,26 @@ const MAX_JOBS = 1000
 
 const jobs = new Map()
 const lanes = {
-    repo: { limit: MAX_CONCURRENT_REPO_SCANS, running: 0, waiting: [] },
-    web: { limit: MAX_CONCURRENT_WEB_SCANS, running: 0, waiting: [] },
+    repo: { limit: MAX_CONCURRENT_REPO_SCANS, timeLimit: REPO_SCAN_TIME_LIMIT_MS, running: 0, waiting: [] },
+    web: { limit: MAX_CONCURRENT_WEB_SCANS, timeLimit: WEB_SCAN_TIME_LIMIT_MS, running: 0, waiting: [] },
+}
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms).unref())
+const whenAborted = (signal) => new Promise((_, reject) => {
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+})
+
+// Finished reports are kept so links work for a while, but they must never stop
+// new scans: when the store is full, the oldest finished report makes way.
+const makeRoom = () => {
+    if (jobs.size < MAX_JOBS) return true
+    for (const [id, job] of jobs) {
+        if (job.finishedAt) {
+            jobs.delete(id)
+            return true
+        }
+    }
+    return false
 }
 
 const pump = (lane) => {
@@ -37,7 +58,7 @@ export const queueStats = () => ({
 export const submitJob = ({ target, steps, lane: laneName, task }) => {
     const lane = lanes[laneName]
     const queued = lanes.repo.waiting.length + lanes.web.waiting.length
-    if (queued >= MAX_QUEUED_SCANS || jobs.size >= MAX_JOBS) {
+    if (queued >= MAX_QUEUED_SCANS || !makeRoom()) {
         const error = new Error('Raptor is busy right now. Please try again in a minute.')
         error.status = 503
         error.expose = true
@@ -66,14 +87,26 @@ export const submitJob = ({ target, steps, lane: laneName, task }) => {
     const start = async () => {
         job.status = 'running'
         job.startedAt = Date.now()
+        const controller = new AbortController()
+        const timer = setTimeout(() => controller.abort(), lane.timeLimit)
+        const work = task({ step, signal: controller.signal })
+        work.catch(() => {}) // settles after an abort too; never let that go unhandled
         try {
-            job.result = await task({ step })
+            job.result = await Promise.race([work, whenAborted(controller.signal)])
             job.status = 'done'
         } catch (error) {
             job.status = 'failed'
-            job.error = error.expose ? error.message : 'Something went wrong on our side. Please try again.'
-            if (!error.expose) console.error(`Scan ${job.id} failed:`, error)
+            if (controller.signal.aborted) {
+                job.error = `This scan hit the ${Math.round(lane.timeLimit / 1000)}-second limit and was stopped so the next person in line could go. Try again, or try a smaller repo.`
+                console.warn(`Scan ${job.id} timed out`)
+            } else {
+                job.error = error.expose ? error.message : 'Something went wrong on our side. Please try again.'
+                if (!error.expose) console.error(`Scan ${job.id} failed:`, error)
+            }
         } finally {
+            clearTimeout(timer)
+            // Give killed scanners a moment to exit before the slot is reused.
+            if (controller.signal.aborted) await Promise.race([work.catch(() => {}), sleep(10000)])
             job.finishedAt = Date.now()
             for (const entry of job.steps) {
                 if (entry.state === 'active') entry.state = job.status === 'failed' ? 'failed' : 'done'

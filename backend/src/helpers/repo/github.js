@@ -40,10 +40,11 @@ const githubHeaders = () => ({
 
 // Returns null when the API is unavailable (e.g. rate limited) so the scan can
 // still go ahead using the archive URL, which has no API quota.
-export const fetchRepoInfo = async ({ owner, repo }) => {
+export const fetchRepoInfo = async ({ owner, repo }, signal) => {
     const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, {
         headers: githubHeaders(),
         timeout: 10000,
+        signal,
         validateStatus: () => true,
     })
     if (response.status === 404) {
@@ -74,28 +75,36 @@ const byteLimit = (limit) => {
 }
 
 // HEAD is always the default branch, so this needs no API call.
-export const downloadRepo = async ({ owner, repo }, workDir) => {
+export const downloadRepo = async ({ owner, repo }, workDir, signal) => {
     const zipPath = path.join(workDir, 'repo.zip')
-    const response = await axios.get(`https://codeload.github.com/${owner}/${repo}/zip/HEAD`, {
-        responseType: 'stream',
-        timeout: 60000,
-        maxRedirects: 3,
-        validateStatus: () => true,
-        headers: githubHeaders(),
-    })
-    if (response.status === 404) {
-        response.data.destroy()
-        throw badRequest("We couldn't download that repo. It may be private or empty.", 404)
+    // Total cap on the download, not just the wait for the first byte.
+    const deadline = AbortSignal.timeout(90000)
+    try {
+        const response = await axios.get(`https://codeload.github.com/${owner}/${repo}/zip/HEAD`, {
+            responseType: 'stream',
+            timeout: 60000,
+            signal: signal ? AbortSignal.any([signal, deadline]) : deadline,
+            maxRedirects: 3,
+            validateStatus: () => true,
+            headers: githubHeaders(),
+        })
+        if (response.status === 404) {
+            response.data.destroy()
+            throw badRequest("We couldn't download that repo. It may be private or empty.", 404)
+        }
+        if (response.status !== 200) {
+            response.data.destroy()
+            throw badRequest(`GitHub returned an error (${response.status}) while downloading the repo. Try again in a minute.`, 502)
+        }
+        await pipeline(response.data, byteLimit(MAX_DOWNLOAD_BYTES), fs.createWriteStream(zipPath))
+        return zipPath
+    } catch (error) {
+        if (deadline.aborted && !signal?.aborted) throw badRequest('Downloading the repo from GitHub took too long. Try again in a minute.', 504)
+        throw error
     }
-    if (response.status !== 200) {
-        response.data.destroy()
-        throw badRequest(`GitHub returned an error (${response.status}) while downloading the repo. Try again in a minute.`, 502)
-    }
-    await pipeline(response.data, byteLimit(MAX_DOWNLOAD_BYTES), fs.createWriteStream(zipPath))
-    return zipPath
 }
 
-export const extractRepo = async (zipPath, workDir) => {
+export const extractRepo = async (zipPath, workDir, signal) => {
     const destination = path.join(workDir, 'src')
     fs.mkdirSync(destination)
     const archive = await unzipper.Open.file(zipPath)
@@ -107,6 +116,7 @@ export const extractRepo = async (zipPath, workDir) => {
 
     let written = 0
     for (const entry of files) {
+        signal?.throwIfAborted()
         // GitHub archives wrap everything in "<repo>-<branch>/"; drop that prefix.
         const relative = entry.path.split('/').slice(1).join('/')
         if (!relative || SKIPPED_DIRS.test(relative) || entry.uncompressedSize > MAX_FILE_BYTES) continue

@@ -14,7 +14,7 @@ const SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, low: 3, info: 4 }
 
 // ---------- Leaked secrets (Gitleaks + TruffleHog) ----------
 
-const runGitleaks = async (repoDir, workDir) => {
+const runGitleaks = async (repoDir, workDir, signal) => {
     const report = path.join(workDir, 'gitleaks.json')
     const { error, timedOut } = await runTool(GITLEAKS_BIN, [
         'dir', repoDir,
@@ -24,7 +24,7 @@ const runGitleaks = async (repoDir, workDir) => {
         '--log-level', 'error',
         '--exit-code', '0',
         '--max-target-megabytes', '5',
-    ], { timeout: 120000, home: workDir })
+    ], { timeout: 120000, home: workDir, signal })
     if (error) return { ok: false, timedOut, hits: [] }
     try {
         const results = JSON.parse(fs.readFileSync(report, 'utf8'))
@@ -44,10 +44,10 @@ const runGitleaks = async (repoDir, workDir) => {
     }
 }
 
-const runTrufflehog = async (repoDir, workDir) => {
+const runTrufflehog = async (repoDir, workDir, signal) => {
     const { error, stdout, timedOut } = await runTool(TRUFFLEHOG_BIN, [
         'filesystem', repoDir, '--json', '--no-update',
-    ], { timeout: 150000, home: workDir })
+    ], { timeout: 150000, home: workDir, signal })
     if (error && !stdout) return { ok: false, timedOut, hits: [] }
     const hits = []
     for (const line of stdout.split('\n')) {
@@ -174,11 +174,11 @@ const secretFinding = (group) => {
     }
 }
 
-const scanSecrets = async (repoDir, workDir, coverage) => {
+const scanSecrets = async (repoDir, workDir, coverage, signal) => {
     // One after the other, not in parallel: it roughly halves peak memory, which
     // matters more than a few seconds on a small shared server.
-    const gitleaks = await runGitleaks(repoDir, workDir)
-    const trufflehog = await runTrufflehog(repoDir, workDir)
+    const gitleaks = await runGitleaks(repoDir, workDir, signal)
+    const trufflehog = await runTrufflehog(repoDir, workDir, signal)
     if (!gitleaks.ok) coverage.push({ check: 'Gitleaks', status: 'failed', note: gitleaks.timedOut ? 'Gitleaks ran out of time on this repo.' : 'Gitleaks couldn\'t finish on this repo.' })
     if (!trufflehog.ok) coverage.push({ check: 'TruffleHog', status: 'failed', note: trufflehog.timedOut ? 'TruffleHog ran out of time on this repo.' : 'TruffleHog couldn\'t finish on this repo.' })
     if (!gitleaks.ok && !trufflehog.ok) {
@@ -280,7 +280,7 @@ export const checkConfig = async (repoDir) => {
 
 const NPM_SEVERITY = { critical: 'critical', high: 'high', moderate: 'medium', low: 'low', info: 'info' }
 
-const auditDependencies = async (repoDir, workDir, coverage) => {
+const auditDependencies = async (repoDir, workDir, coverage, signal) => {
     const lockfiles = (await glob('**/package-lock.json', { cwd: repoDir, nodir: true, ignore: IGNORE }))
         .sort((a, b) => a.split('/').length - b.split('/').length)
     const otherLocks = await glob(['**/yarn.lock', '**/pnpm-lock.yaml', '**/bun.lockb', '**/bun.lock'], { cwd: repoDir, nodir: true, ignore: IGNORE })
@@ -302,7 +302,7 @@ const auditDependencies = async (repoDir, workDir, coverage) => {
         fs.rmSync(path.join(dir, '.npmrc'), { force: true })
         const { stdout } = await runTool(NPM_BIN, [
             'audit', '--json', '--omit=dev', '--registry=https://registry.npmjs.org/', '--no-update-notifier', '--no-fund',
-        ], { cwd: dir, timeout: 60000, home: workDir })
+        ], { cwd: dir, timeout: 45000, home: workDir, signal })
         let report
         try { report = JSON.parse(stdout) } catch { continue }
         if (report.error) continue
@@ -362,19 +362,19 @@ const auditDependencies = async (repoDir, workDir, coverage) => {
 
 // ---------- Orchestration ----------
 
-export const scanRepository = async (ref, { step = () => {} } = {}) => {
+export const scanRepository = async (ref, { step = () => {}, signal } = {}) => {
     const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'raptor-'))
     const coverage = []
     try {
         step('download', 'active')
-        const info = await fetchRepoInfo(ref)
-        const zipPath = await downloadRepo(ref, workDir)
-        const { repoDir, fileCount } = await extractRepo(zipPath, workDir)
+        const info = await fetchRepoInfo(ref, signal)
+        const zipPath = await downloadRepo(ref, workDir, signal)
+        const { repoDir, fileCount } = await extractRepo(zipPath, workDir, signal)
         fs.rmSync(zipPath, { force: true })
         step('download', 'done')
 
         step('secrets', 'active')
-        const secrets = await scanSecrets(repoDir, workDir, coverage)
+        const secrets = await scanSecrets(repoDir, workDir, coverage, signal)
         step('secrets', 'done')
 
         step('config', 'active')
@@ -382,7 +382,7 @@ export const scanRepository = async (ref, { step = () => {} } = {}) => {
         step('config', 'done')
 
         step('deps', 'active')
-        const deps = await auditDependencies(repoDir, workDir, coverage)
+        const deps = await auditDependencies(repoDir, workDir, coverage, signal)
         step('deps', 'done')
 
         const realSecrets = secrets.filter(finding => finding.severity !== 'info')

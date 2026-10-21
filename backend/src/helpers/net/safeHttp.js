@@ -77,13 +77,17 @@ export const assertPublicUrl = (url) => {
 const USER_AGENT = 'RaptorSecurityScanner/1.0 (+https://raptorscan.netlify.app)'
 
 // GET with manual redirect handling so every hop goes through assertPublicUrl.
-export const safeGet = async (input, { headers = {}, maxBytes = 3 * 1024 * 1024, timeout = 10000, maxRedirects = 5 } = {}) => {
+// `timeout` caps the whole request, not just idle gaps, so a site that trickles
+// one byte every few seconds can't hold a scan slot hostage.
+export const safeGet = async (input, { headers = {}, maxBytes = 3 * 1024 * 1024, timeout = 10000, maxRedirects = 5, signal } = {}) => {
     let url = new URL(input)
     const chain = []
 
     for (let hop = 0; hop <= maxRedirects; hop++) {
         assertPublicUrl(url)
+        const deadline = AbortSignal.timeout(timeout)
         const response = await axios.get(url.toString(), {
+            signal: signal ? AbortSignal.any([signal, deadline]) : deadline,
             httpAgent,
             httpsAgent,
             proxy: false,
@@ -133,6 +137,7 @@ export const describeNetworkError = (error) => {
         ECONNREFUSED: "The site refused the connection. Is it deployed and running?",
         ECONNRESET: "The site closed the connection before we could check it.",
         ECONNABORTED: "The site took too long to respond (over 10 seconds).",
+        ERR_CANCELED: "The site took too long to respond (over 10 seconds).",
         ETIMEDOUT: "The site took too long to respond (over 10 seconds).",
         CERT_HAS_EXPIRED: "The site's HTTPS certificate has expired, so browsers will block it too.",
         ERR_TLS_CERT_ALTNAME_INVALID: "The site's HTTPS certificate doesn't match its address.",

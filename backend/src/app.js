@@ -22,7 +22,9 @@ app.use(cors({
 
 app.use(rateLimit({
     windowMs: 60 * 1000,
-    limit: 120, // generous: the results page polls about once a second
+    limit: 120,
+    // Polling has its own, larger limit in the scan router.
+    skip: (req) => req.method === 'GET' && req.path.startsWith('/api/v1/scans/'),
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     handler: (req, res) => res.status(429).json({ success: false, error: 'Too many requests. Try again in a minute.' }),

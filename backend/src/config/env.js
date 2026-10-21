@@ -29,3 +29,8 @@ export const CORS_ORIGIN_PATTERNS = [/^https:\/\/[a-z0-9-]+--raptorscan\.netlify
 export const MAX_CONCURRENT_REPO_SCANS = Number(process.env.MAX_CONCURRENT_REPO_SCANS) || 1
 export const MAX_CONCURRENT_WEB_SCANS = Number(process.env.MAX_CONCURRENT_WEB_SCANS) || 3
 export const MAX_QUEUED_SCANS = Number(process.env.MAX_QUEUED_SCANS) || 20
+
+// Hard ceiling per scan. When it's hit the scanners are killed and the slot goes
+// to the next person in line, so one stuck scan can never block the queue.
+export const REPO_SCAN_TIME_LIMIT_MS = Number(process.env.REPO_SCAN_TIME_LIMIT_MS) || 4 * 60 * 1000
+export const WEB_SCAN_TIME_LIMIT_MS = Number(process.env.WEB_SCAN_TIME_LIMIT_MS) || 75 * 1000

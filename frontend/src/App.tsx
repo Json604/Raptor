@@ -1,22 +1,33 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Home from './pages/home/Home'
-import Results from './pages/results/Results'
-import SignUp from './pages/sign-up/signup'
-import MonitoringDashboard from './pages/monitoring/MonitoringDashboard'
-import Waitlist from './pages/waitlist/Waitlist'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import Home from './pages/Home'
+import Scan from './pages/Scan'
+import Nav from './components/Nav'
+import Footer from './components/Footer'
 
-function App() {
+function NotFound() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Waitlist />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/results" element={<Results />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/monitoring-dashboard" element={<MonitoringDashboard />} />
-      </Routes>
-    </Router>
+    <>
+      <Nav />
+      <main className="scan-page">
+        <div className="state container">
+          <h1 className="t-title1">Page not found</h1>
+          <p className="t-body secondary">That link doesn't go anywhere.</p>
+          <div className="state-actions"><Link to="/" className="button button-primary">Go to Raptor</Link></div>
+        </div>
+      </main>
+      <Footer />
+    </>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/scan/:id" element={<Scan />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}

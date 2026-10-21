@@ -1,0 +1,124 @@
+/*
+ * Design tokens. Light first, dark follows the system setting (Apple HIG:
+ * don't offer an app-specific appearance switch).
+ *
+ * Color carries meaning only for severity. The brand orange lives in the logo
+ * and nowhere else, so "orange" never has two meanings on screen.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces */
+  --bg: #ffffff;
+  --bg-secondary: #f5f5f7;
+  --surface: #ffffff;
+  --surface-sunken: #f5f5f7;
+
+  /* Labels (all ≥ 4.5:1 on --bg except tertiary, used for large text/icons only) */
+  --label: #1d1d1f;
+  --label-secondary: #6e6e73;
+  --label-tertiary: #86868b;
+  --link: #0066cc;
+
+  /* Lines and fills */
+  --separator: rgba(0, 0, 0, 0.08);
+  --separator-strong: #d2d2d7;
+  --fill: rgba(120, 120, 128, 0.1);
+  --fill-strong: rgba(120, 120, 128, 0.16);
+  --focus-ring: 0 0 0 4px rgba(0, 113, 227, 0.32);
+
+  /* Primary action: monochrome, like Apple's own pages */
+  --button: #1d1d1f;
+  --button-hover: #424245;
+  --button-label: #ffffff;
+
+  --brand: #ff6a00;
+
+  /* Severity: text color / tint background */
+  --critical: #d70015;
+  --critical-tint: rgba(255, 59, 48, 0.1);
+  --high: #c93400;
+  --high-tint: rgba(255, 149, 0, 0.12);
+  --medium: #9a6700;
+  --medium-tint: rgba(255, 204, 0, 0.16);
+  --low: #6e6e73;
+  --low-tint: rgba(120, 120, 128, 0.12);
+  --info: #0066cc;
+  --info-tint: rgba(0, 122, 255, 0.08);
+  --success: #248a3d;
+  --success-tint: rgba(52, 199, 89, 0.12);
+
+  --shadow-card: 0 1px 1px rgba(0, 0, 0, 0.02), 0 2px 12px rgba(0, 0, 0, 0.04);
+  --shadow-raised: 0 2px 4px rgba(0, 0, 0, 0.04), 0 12px 40px rgba(0, 0, 0, 0.08);
+
+  --material: rgba(255, 255, 255, 0.72);
+
+  /* Shape */
+  --radius-xl: 28px;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --radius-pill: 980px;
+
+  /* Type */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Motion (custom curves: built-in easings are too weak) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* Layout */
+  --content: 980px;
+  --wide: 1120px;
+  --gutter: 20px;
+  --nav-height: 52px;
+}
+
+@media (min-width: 734px) {
+  :root { --gutter: 32px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --bg-secondary: #101011;
+    --surface: #1c1c1e;
+    --surface-sunken: #0e0e0f;
+
+    --label: #f5f5f7;
+    --label-secondary: #a1a1a6;
+    --label-tertiary: #6e6e73;
+    --link: #2997ff;
+
+    --separator: rgba(255, 255, 255, 0.1);
+    --separator-strong: #424245;
+    --fill: rgba(118, 118, 128, 0.2);
+    --fill-strong: rgba(118, 118, 128, 0.3);
+    --focus-ring: 0 0 0 4px rgba(41, 151, 255, 0.4);
+
+    --button: #f5f5f7;
+    --button-hover: #d2d2d7;
+    --button-label: #1d1d1f;
+
+    --critical: #ff6961;
+    --critical-tint: rgba(255, 69, 58, 0.16);
+    --high: #ffb340;
+    --high-tint: rgba(255, 159, 10, 0.16);
+    --medium: #ffd426;
+    --medium-tint: rgba(255, 214, 10, 0.14);
+    --low: #a1a1a6;
+    --low-tint: rgba(118, 118, 128, 0.22);
+    --info: #64b5ff;
+    --info-tint: rgba(10, 132, 255, 0.16);
+    --success: #4cd964;
+    --success-tint: rgba(48, 209, 88, 0.14);
+
+    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.06);
+    --shadow-raised: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 16px 48px rgba(0, 0, 0, 0.5);
+
+    --material: rgba(22, 22, 23, 0.72);
+  }
+}

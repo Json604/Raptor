@@ -1,0 +1,61 @@
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.copy-quiet {
+  min-height: 32px;
+  padding: 0 10px;
+  margin: -4px -6px -4px 0;
+  border-radius: var(--radius-pill);
+  color: var(--label-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: background-color 150ms var(--ease), color 150ms var(--ease), transform 160ms var(--ease-out);
+}
+
+.copy-quiet:active { transform: scale(0.97); }
+
+@media (hover: hover) and (pointer: fine) {
+  .copy-quiet:hover { background: var(--fill); color: var(--label); }
+}
+
+.copy[data-copied='true'].copy-quiet { color: var(--success); }
+
+/* Both states share one grid cell, so the button never changes width */
+.copy-icon,
+.copy-label {
+  display: inline-grid;
+}
+
+.copy-icon > *,
+.copy-label > * {
+  grid-area: 1 / 1;
+}
+
+.copy-label > * {
+  white-space: nowrap;
+}
+
+.copy-label > :last-child {
+  justify-self: start;
+}
+
+.copy-layer {
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 200ms var(--ease), filter 200ms var(--ease), transform 200ms var(--ease-out);
+}
+
+.copy-layer[data-visible='false'] {
+  opacity: 0;
+  filter: blur(2px);
+  transform: scale(0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copy-layer { transition-property: opacity; }
+  .copy-layer[data-visible='false'] { filter: none; transform: none; }
+}

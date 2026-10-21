@@ -1,0 +1,244 @@
+.findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.finding {
+  --tone: var(--low);
+  --tint: var(--low-tint);
+}
+
+.finding[data-severity='critical'] { --tone: var(--critical); --tint: var(--critical-tint); }
+.finding[data-severity='high'] { --tone: var(--high); --tint: var(--high-tint); }
+.finding[data-severity='medium'] { --tone: var(--medium); --tint: var(--medium-tint); }
+.finding[data-severity='info'] { --tone: var(--info); --tint: var(--info-tint); }
+
+.finding + .finding {
+  border-top: 1px solid var(--separator);
+}
+
+.finding-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 64px;
+  padding: 14px 18px 14px 20px;
+  text-align: left;
+  border-radius: 0;
+  transition: background-color 150ms var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.finding-head:focus-visible {
+  border-radius: 0;
+  box-shadow: inset var(--focus-ring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .finding-head:hover { background: var(--fill); }
+}
+
+.finding-head:active {
+  background: var(--fill-strong);
+}
+
+.finding-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 0 4px var(--tint);
+}
+
+.finding-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.finding-title {
+  color: var(--label);
+  text-wrap: pretty;
+}
+
+.finding-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  color: var(--label-secondary);
+  min-width: 0;
+}
+
+.finding-location {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.finding-meta > :not(:first-child)::before {
+  content: '·';
+  margin-right: 8px;
+  font-family: var(--font);
+}
+
+.finding-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.pill-severity {
+  background: var(--tint);
+  color: var(--tone);
+}
+
+.pill-critical {
+  background: var(--critical);
+  color: #fff;
+}
+
+.finding-chevron {
+  color: var(--label-tertiary);
+  transition: transform 250ms var(--ease-out);
+}
+
+.finding[data-open='true'] .finding-chevron {
+  transform: rotate(90deg);
+}
+
+@media (max-width: 600px) {
+  .finding-head {
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    padding: 14px 14px 14px 16px;
+  }
+  .finding-badges {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .finding-chevron {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .finding-dot { align-self: start; margin-top: 6px; }
+}
+
+/* Expand: animate the grid track instead of measuring height in JS */
+.finding-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms var(--ease-out);
+}
+
+.finding[data-open='true'] .finding-reveal {
+  grid-template-rows: 1fr;
+}
+
+.finding-reveal-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.finding-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 2px 20px 22px 44px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 180ms var(--ease), transform 300ms var(--ease-out);
+}
+
+.finding[data-open='true'] .finding-body {
+  opacity: 1;
+  transform: none;
+  transition-delay: 40ms;
+}
+
+@media (max-width: 600px) {
+  .finding-body { padding: 2px 16px 20px 16px; }
+}
+
+.finding-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.finding-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--label-secondary);
+}
+
+.finding-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 1.3em;
+  color: var(--label);
+}
+
+.finding-steps li::marker {
+  color: var(--label-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.finding-steps a {
+  word-break: break-all;
+}
+
+.finding-evidence {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.finding-locations {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.75rem;
+  color: var(--label-secondary);
+}
+
+.finding-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  min-height: 32px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finding-reveal { transition: none; }
+  .finding-body { transform: none; transition: opacity 150ms var(--ease); }
+  .finding-chevron { transition: none; }
+}

@@ -1,0 +1,264 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--nav-height) + 16px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--label);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.47;
+  letter-spacing: -0.022em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, p, ol, ul, figure {
+  margin: 0;
+}
+
+ol, ul {
+  padding: 0;
+}
+
+img, svg {
+  display: block;
+}
+
+button, input {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  a:hover { text-decoration: underline; }
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: rgba(0, 113, 227, 0.2);
+}
+
+/* ---------- Type scale (Apple HIG, adapted for the web) ---------- */
+
+.t-hero {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 1.55rem + 4.2vw, 4.75rem);
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.t-large {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.5rem + 2vw, 3rem);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.t-title1 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.t-title2 {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.27;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.t-title3 {
+  font-size: 1.25rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.017em;
+}
+
+.t-headline {
+  font-size: 1.0625rem;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+}
+
+.t-body {
+  font-size: 1.0625rem;
+  line-height: 1.47;
+}
+
+.t-callout {
+  font-size: 1rem;
+  line-height: 1.4;
+  letter-spacing: -0.016em;
+}
+
+.t-subhead {
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.t-footnote {
+  font-size: 0.8125rem;
+  line-height: 1.38;
+  letter-spacing: -0.006em;
+}
+
+.t-caption {
+  font-size: 0.75rem;
+  line-height: 1.33;
+  letter-spacing: 0;
+}
+
+.secondary { color: var(--label-secondary); }
+.mono { font-family: var(--font-mono); letter-spacing: 0; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- Layout ---------- */
+
+.container {
+  width: 100%;
+  max-width: calc(var(--content) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.container-wide {
+  width: 100%;
+  max-width: calc(var(--wide) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* ---------- Buttons ---------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-pill);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  letter-spacing: -0.022em;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: transform 160ms var(--ease-out), background-color 150ms var(--ease), opacity 150ms var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.button-primary {
+  background: var(--button);
+  color: var(--button-label);
+}
+
+.button-secondary {
+  background: var(--fill);
+  color: var(--label);
+}
+
+.button-plain {
+  color: var(--link);
+  padding: 0 4px;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+}
+
+.button-small {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 0.9375rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button-primary:hover:not(:disabled) { background: var(--button-hover); }
+  .button-secondary:hover:not(:disabled) { background: var(--fill-strong); }
+  .button:hover { text-decoration: none; }
+  .button-plain:hover { text-decoration: underline; }
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- Entrance (used once per view, never on repeated interactions) ---------- */
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.rise {
+  animation: rise 560ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise { animation-name: fade; animation-duration: 240ms; }
+}

@@ -1,0 +1,14 @@
+.spinner {
+  display: inline-block;
+  flex: none;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Reduced motion still needs a sign of life; slow it down rather than freeze it. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation-duration: 1600ms; }
+}

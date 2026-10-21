@@ -1,4 +1,31 @@
+# Netlify site "raptorfe" builds this folder (base directory: frontend).
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Public on purpose: the browser needs it. Switch to https://api.raptor.support/api/v1
+  # once that DNS record points at the droplet.
+  VITE_API_URL = "https://raptor-api.159-89-169-228.sslip.io/api/v1"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Raptor should pass its own scan.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://api.raptor.support https://raptor-api.159-89-169-228.sslip.io https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

@@ -1,0 +1,81 @@
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.steps-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: var(--label-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.75rem;
+}
+
+.steps-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+}
+
+.step-icon {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  color: var(--label-secondary);
+}
+
+.step-pending {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fill-strong);
+}
+
+.step-mark {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #fff;
+  /* Appears once per step, so a small pop is earned feedback, not noise */
+  animation: step-pop 220ms var(--ease-out) both;
+}
+
+.step-done { background: var(--success); }
+.step-failed { background: var(--critical); }
+.step-skipped { background: var(--fill-strong); color: var(--label-secondary); }
+
+@keyframes step-pop {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.step-label {
+  color: var(--label-secondary);
+  transition: color 200ms var(--ease);
+}
+
+.step[data-state='active'] .step-label,
+.step[data-state='done'] .step-label {
+  color: var(--label);
+}
+
+.step[data-state='active'] .step-label {
+  font-weight: 500;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-mark { animation-name: fade; }
+}

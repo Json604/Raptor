@@ -35,6 +35,7 @@ const runGitleaks = async (repoDir, workDir) => {
                 file: path.relative(repoDir, result.File),
                 line: result.StartLine,
                 secret: result.Secret,
+                context: result.Match || '',
                 verified: false,
             })),
         }
@@ -94,14 +95,45 @@ const groupHits = (hits) => {
     return groups
 }
 
+// Keys that are designed to be public (search-only, analytics, anon, publishable).
+const PUBLIC_KEY_CONTEXT = /algolia|docsearch|docusaurus|search.?only|publishable|anon|measurement|site.?key|recaptcha|firebase|sentry|posthog|mixpanel|segment|amplitude|gtag|analytics/i
+const SECRET_CONTEXT = /secret|passw|private|token|auth/i
+// Real keys mix letters and digits; identifiers like getTargetKey and slugs don't.
+const looksRandom = (value) => value.length >= 16 && /\d/.test(value) && /[A-Za-z]/.test(value) && !/^[a-z0-9]+(-[a-z0-9]+)+$/.test(value)
+
 const secretFinding = (group) => {
     const serviceKey = serviceFromDetector(group.detector, group.secret)
     const service = SERVICES[serviceKey]
     const inTestFile = group.locations.every(location => TEST_PATH.test(location))
     let severity = group.verified ? 'critical' : service.severity
+
+    // Gitleaks' generic rule fires on anything that looks like `apiKey = "..."`.
+    // Without a known format, only flag it when the name says it's sensitive.
+    if (serviceKey === 'generic' && !group.verified) {
+        const context = `${group.context || ''} ${group.locations.join(' ')}`
+        if (PUBLIC_KEY_CONTEXT.test(context) || !looksRandom(group.secret) || inTestFile) return null
+        severity = SECRET_CONTEXT.test(group.context || '') ? 'medium' : 'low'
+    }
     if (inTestFile && !group.verified) severity = DOWNGRADE[severity]
     const where = group.locations.length > 1 ? `${group.locations[0]} and ${group.locations.length - 1} other place${group.locations.length > 2 ? 's' : ''}` : group.locations[0]
     const rotate = group.rotationGuide || service.rotateUrl
+
+    if (serviceKey === 'google_api' && !group.verified) {
+        return {
+            id: `secret-google-${maskSecret(group.secret)}`,
+            source: 'code',
+            category: 'Secrets',
+            severity: 'low',
+            title: 'Google API key in your repo',
+            summary: `Found in ${where}. Firebase and Maps keys are meant to be public, but only if they're restricted. If this is a Gemini key, it's a real leak.`,
+            risk: 'An unrestricted key can be used by anyone, for any Google API it\'s allowed to call, billed to you.',
+            fix: ['In Google Cloud → Credentials, restrict this key to your domains and to only the APIs you use.', 'If it\'s a Gemini / AI Studio key, revoke it and call Gemini from server code instead.'],
+            evidence: maskSecret(group.secret),
+            location: group.locations[0],
+            locations: group.locations,
+            learnMore: service.rotateUrl,
+        }
+    }
 
     if (serviceKey === 'supabase_anon') {
         return {
@@ -153,14 +185,18 @@ const scanSecrets = async (repoDir, workDir, coverage) => {
         throw error
     }
     // TruffleHog first so its verified status and detector names win the merge.
-    return groupHits([...trufflehog.hits, ...gitleaks.hits]).map(secretFinding)
+    return groupHits([...trufflehog.hits, ...gitleaks.hits]).map(secretFinding).filter(Boolean)
 }
 
 // ---------- Config files ----------
 
 const ENV_ASSIGNMENT = /^\s*(?:export\s+)?([A-Z][A-Z0-9_]{1,60})\s*=\s*(.*)$/gm
+// Prefixes that frameworks copy into the browser bundle.
+const PUBLIC_PREFIX = /^(VITE_|NEXT_PUBLIC_|REACT_APP_|EXPO_PUBLIC_|PUBLIC_|NUXT_PUBLIC_|GATSBY_|VUE_APP_)/
+const SECRET_NAME = /SECRET|PASSW|PRIVATE|TOKEN|API_?KEY|ACCESS_?KEY|CREDENTIAL|AUTH|DATABASE_URL|DB_URL|DSN|CONNECTION|SERVICE_ROLE|WEBHOOK/
+const PUBLIC_BY_DESIGN = /ANON|PUBLISHABLE|PUBLIC_KEY|SITE_KEY|MEASUREMENT_ID|FIREBASE|APP_ID|PROJECT_ID|SENTRY_DSN|POSTHOG|ALGOLIA_SEARCH/
 
-const checkConfig = async (repoDir) => {
+export const checkConfig = async (repoDir) => {
     const findings = []
     const passed = []
 
@@ -169,33 +205,38 @@ const checkConfig = async (repoDir) => {
     for (const file of envFiles.slice(0, 10)) {
         let content = ''
         try { content = fs.readFileSync(path.join(repoDir, file), 'utf8').slice(0, 64 * 1024) } catch { continue }
-        const entries = [...content.matchAll(ENV_ASSIGNMENT)]
-        const filled = entries.filter(([, , value]) => {
-            const clean = value.trim().replace(/^["']|["']$/g, '')
-            return clean.length > 0 && !looksLikePlaceholder(clean)
-        })
-        if (!entries.length) continue
+        const secrets = [...content.matchAll(ENV_ASSIGNMENT)]
+            .filter(([, name, value]) => {
+                const clean = value.trim().replace(/^["']|["']$/g, '')
+                return clean.length > 0 && !looksLikePlaceholder(clean) && SECRET_NAME.test(name) && !PUBLIC_BY_DESIGN.test(name)
+            })
+            .map(([, name]) => name)
+        // Committed env files holding only public config (URLs, modes, VITE_ flags) are normal.
+        if (!secrets.length) continue
+
+        const bundled = secrets.filter(name => PUBLIC_PREFIX.test(name))
+        const list = (names) => names.slice(0, 4).join(', ') + (names.length > 4 ? ', …' : '')
         findings.push({
             id: `env-file-${file}`,
             source: 'code',
             category: 'Configuration',
-            severity: filled.length ? 'high' : 'low',
-            title: `${path.basename(file)} file is committed to your repo`,
-            summary: filled.length
-                ? `${file} is public and has ${filled.length} filled-in value${filled.length === 1 ? '' : 's'} (${filled.slice(0, 4).map(([, name]) => name).join(', ')}${filled.length > 4 ? ', …' : ''}).`
-                : `${file} is committed, but its values are empty, so nothing is leaked yet.`,
-            risk: 'Environment files are where API keys and database passwords live. Once one is committed, the next real key you add will be public too.',
+            severity: 'high',
+            title: `${path.basename(file)} with secrets is committed to your repo`,
+            summary: `${file} is public and contains ${secrets.length} secret value${secrets.length === 1 ? '' : 's'} (${list(secrets)}).`
+                + (bundled.length ? ` ${list(bundled)} also ${bundled.length === 1 ? 'has a prefix' : 'have prefixes'} that copies the value into your frontend bundle, so ${bundled.length === 1 ? 'it ships' : 'they ship'} to every visitor.` : ''),
+            risk: 'Anyone browsing your repo can copy these values. Removing the file now doesn\'t help, because it stays in your git history.',
             fix: [
                 `Run: git rm --cached ${file}`,
                 'Add .env* to .gitignore (keep a .env.example with empty values for other developers).',
-                filled.length ? 'Rotate every key that was in this file. It\'s still readable in your git history.' : 'Set real values only in your local .env and in your host\'s settings.',
+                'Rotate every secret that was in this file.',
+                ...(bundled.length ? ['Rename secret variables so they don\'t start with VITE_, NEXT_PUBLIC_ or REACT_APP_, and only use them from server code.'] : []),
             ],
             snippet: { label: '.gitignore', language: 'text', code: '.env\n.env.*\n!.env.example' },
             location: file,
-            evidence: `Variables: ${entries.slice(0, 8).map(([, name]) => name).join(', ')}${entries.length > 8 ? ', …' : ''}`,
+            evidence: `Secret variables: ${list(secrets)}`,
         })
     }
-    if (!findings.length) passed.push({ source: 'code', title: 'No .env files committed' })
+    if (!findings.length) passed.push({ source: 'code', title: envFiles.length ? 'No secrets in committed .env files' : 'No .env files committed' })
 
     // Firebase rules left in "test mode" are one of the most common real-world leaks.
     const rulesFiles = await glob(['**/firestore.rules', '**/storage.rules', '**/database.rules.json'], { cwd: repoDir, nodir: true, ignore: IGNORE })

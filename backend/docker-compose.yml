@@ -1,6 +1,8 @@
 # Runs on a 1 GB droplet next to other apps, so it is boxed in: it can't use more
 # than ~640 MB of RAM or 90% of the CPU, and it only listens on localhost (Caddy
 # terminates TLS in front of it).
+name: raptor
+
 services:
   api:
     build: .

@@ -1,0 +1,16 @@
+# Raptor blocks, appended to /etc/caddy/Caddyfile on the droplet.
+# The sslip.io names work without any DNS setup; the raptor.support names start
+# working (with automatic HTTPS) as soon as their DNS records point here.
+
+raptor-api.159-89-169-228.sslip.io, api.raptor.support {
+	encode gzip
+	reverse_proxy 127.0.0.1:3100
+}
+
+# Deliberately insecure demo target (fake keys). See /demo.
+raptor-demo.159-89-169-228.sslip.io, demo.raptor.support {
+	root * /var/www/raptor-demo
+	file_server
+	header Cache-Control "no-store"
+	header X-Robots-Tag "noindex"
+}

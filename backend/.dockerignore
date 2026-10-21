@@ -5,7 +5,7 @@ npm-debug.log
 .git
 .gitignore
 .DS_Store
-*.md
+README.md
 test
 Dockerfile
 docker-compose.yml

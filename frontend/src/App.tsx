@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link, useParams } from 'react-router-dom'
 import Home from './pages/Home'
 import Scan from './pages/Scan'
 import Nav from './components/Nav'
@@ -20,12 +20,17 @@ function NotFound() {
   )
 }
 
+function ScanRoute() {
+  const { id } = useParams()
+  return <Scan key={id} />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/scan/:id" element={<Scan />} />
+        <Route path="/scan/:id" element={<ScanRoute />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

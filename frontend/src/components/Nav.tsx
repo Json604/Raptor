@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { GitHubIcon, LogoMark, XIcon } from './Icons'
+import HistoryMenu from './HistoryMenu'
 import { SITE } from '../lib/site'
 import './Nav.css'
 
@@ -22,6 +23,7 @@ export default function Nav({ showSections = false, showNewScan = false }: { sho
           {showNewScan && (
             <Link to="/" className="button button-secondary button-small">New scan</Link>
           )}
+          <HistoryMenu />
           <a
             className="nav-icon"
             href={SITE.twitter}

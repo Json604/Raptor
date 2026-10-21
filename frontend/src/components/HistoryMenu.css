@@ -1,0 +1,161 @@
+/* The panel is positioned against .nav-actions (not the icon), so it lines up
+   with the page edge and never runs off a phone screen. */
+.history {
+  position: static;
+}
+
+.history-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: -6px;
+  width: min(340px, calc(100vw - 24px));
+  max-height: min(460px, calc(100dvh - var(--nav-height) - 24px));
+  overflow-y: auto;
+  padding: 6px;
+  text-align: left;
+  background: var(--surface-elevated);
+  border-radius: 16px;
+  box-shadow: var(--shadow-raised), 0 0 0 0.5px var(--separator);
+  /* Grows out of the icon that opened it */
+  transform-origin: calc(100% - var(--origin-x, 24px)) top;
+  opacity: 0;
+  transform: scale(0.96);
+  visibility: hidden;
+  /* Closing is quicker than opening */
+  transition: opacity 120ms var(--ease), transform 150ms var(--ease-out), visibility 0s linear 150ms;
+}
+
+.history[data-open='true'] .history-panel {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  transition: opacity 160ms var(--ease), transform 220ms var(--ease-out), visibility 0s;
+}
+
+.history[data-open='true'] .nav-icon {
+  color: var(--label);
+}
+
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 4px 10px;
+}
+
+.history-title {
+  font-weight: 600;
+  color: var(--label-secondary);
+}
+
+.history-clear {
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  color: var(--link);
+  transition: background-color 150ms var(--ease);
+}
+
+.history-list {
+  list-style: none;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 10px;
+  border-radius: 11px;
+  color: var(--label);
+  transition: background-color 150ms var(--ease);
+}
+
+.history-item:hover {
+  text-decoration: none;
+}
+
+.history-item[aria-current='page'] {
+  background: var(--accent-tint);
+}
+
+.history-item:focus-visible {
+  border-radius: 11px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .history-item:not([aria-current='page']):hover { background: var(--fill); }
+  .history-clear:hover { background: var(--accent-tint); }
+}
+
+.history-grade {
+  --tone: var(--success);
+  --tint: var(--success-tint);
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--tint);
+  color: var(--tone);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.history-grade[data-tone='medium'] { --tone: var(--medium); --tint: var(--medium-tint); }
+.history-grade[data-tone='high'] { --tone: var(--high); --tint: var(--high-tint); }
+.history-grade[data-tone='critical'] { --tone: var(--critical); --tint: var(--critical-tint); }
+
+.history-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.history-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  min-width: 0;
+}
+
+.history-name svg {
+  flex: none;
+  color: var(--label-secondary);
+}
+
+.history-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-meta {
+  color: var(--label-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-empty {
+  padding: 10px;
+}
+
+.history-foot {
+  margin-top: 4px;
+  padding: 8px 10px 6px;
+  border-top: 1px solid var(--separator);
+  color: var(--label-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .history-panel,
+  .history[data-open='true'] .history-panel {
+    transform: none;
+  }
+}

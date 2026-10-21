@@ -14,6 +14,7 @@
   --bg-secondary: #f5f5f7;
   --surface: #ffffff;
   --surface-sunken: #f5f5f7;
+  --surface-elevated: #ffffff; /* popovers and menus */
 
   /* Labels (all ≥ 4.5:1 on --bg except tertiary, used for large text/icons only) */
   --label: #1d1d1f;
@@ -91,6 +92,7 @@
     --bg-secondary: #101011;
     --surface: #1c1c1e;
     --surface-sunken: #0e0e0f;
+    --surface-elevated: #2c2c2e; /* HIG: elevated surfaces are brighter in dark mode */
 
     --label: #f5f5f7;
     --label-secondary: #a1a1a6;

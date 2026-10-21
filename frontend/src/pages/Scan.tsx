@@ -12,60 +12,13 @@ import CopyButton from '../components/CopyButton'
 import Segmented from '../components/Segmented'
 import { GitHubIcon } from '../components/Icons'
 import { ApiError, getScan, startScan } from '../lib/api'
+import { loadReport, saveReport } from '../lib/history'
 import { SEVERITY_LABEL, formatDuration, hostOf, toFixPrompt } from '../lib/format'
 import type { Job, Severity, Source } from '../lib/types'
 import './Scan.css'
 
 // Faster while scanning (steps change every few seconds), slower while waiting in line.
 const POLL_MS = { running: 900, queued: 2000 }
-const STORAGE_PREFIX = 'raptor:scan:'
-// Same lifetime as on the server, counted from when the scan finished. The
-// browser copy only exists so a refresh or a brief server restart doesn't lose
-// a report; it is never kept longer than the site promises.
-const REPORT_TTL_MS = 2 * 60 * 60 * 1000
-const MAX_SAVED_REPORTS = 20
-
-const isExpired = (job: Job) => !job.result || Date.now() - Date.parse(job.result.scannedAt) > REPORT_TTL_MS
-
-// Drops expired copies, then the oldest ones beyond the cap.
-const pruneReports = () => {
-  const saved: { key: string; finished: number }[] = []
-  for (let index = localStorage.length - 1; index >= 0; index--) {
-    const key = localStorage.key(index)
-    if (!key?.startsWith(STORAGE_PREFIX)) continue
-    try {
-      const job = JSON.parse(localStorage.getItem(key) || 'null') as Job | null
-      if (!job || isExpired(job)) localStorage.removeItem(key)
-      else saved.push({ key, finished: Date.parse(job.result!.scannedAt) })
-    } catch {
-      localStorage.removeItem(key)
-    }
-  }
-  saved.sort((a, b) => b.finished - a.finished).slice(MAX_SAVED_REPORTS).forEach(({ key }) => localStorage.removeItem(key))
-}
-
-const saveReport = (job: Job) => {
-  try {
-    localStorage.setItem(STORAGE_PREFIX + job.id, JSON.stringify(job))
-    pruneReports()
-  } catch { /* storage full or blocked: the report still shows, it just won't survive a refresh */ }
-}
-
-const loadReport = (id: string): Job | null => {
-  try {
-    const raw = localStorage.getItem(STORAGE_PREFIX + id)
-    if (!raw) return null
-    const job = JSON.parse(raw) as Job
-    if (isExpired(job)) {
-      localStorage.removeItem(STORAGE_PREFIX + id)
-      return null
-    }
-    return job
-  } catch {
-    return null
-  }
-}
-
 type LoadError = { kind: 'expired' } | { kind: 'error'; message: string }
 
 const ordinal = (n: number) => {

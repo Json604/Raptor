@@ -57,6 +57,7 @@ Repo scans run one at a time (the server has 1 GB of RAM); queued jobs report th
 ## Deploy
 
 - **API + demo site** → DigitalOcean droplet: `./deploy/deploy.sh`. Caddy terminates TLS in front of the container. The site blocks are in `deploy/Caddyfile.raptor`.
+- **DNS** → A records `raptor-api.kartikey.xyz` and `raptor-demo.kartikey.xyz` point at the droplet (managed in Vercel DNS).
 - **Frontend** → Netlify site `raptorscan`, base directory `frontend/`; `frontend/netlify.toml` holds the build settings, the API URL and the security headers.
 
 ## How Raptor protects itself

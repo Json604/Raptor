@@ -9,5 +9,5 @@ export const SITE = {
 // deliberately insecure page served from the Raptor droplet (see /demo).
 export const EXAMPLES = {
   leakyRepo: 'github.com/trufflesecurity/test_keys',
-  leakySite: 'raptor-demo.159-89-169-228.sslip.io',
+  leakySite: 'raptor-demo.kartikey.xyz',
 }

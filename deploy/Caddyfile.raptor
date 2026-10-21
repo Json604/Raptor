@@ -1,14 +1,14 @@
 # Raptor blocks, appended to /etc/caddy/Caddyfile on the droplet.
-# sslip.io hostnames resolve to the IP embedded in them, so they need no DNS
-# setup and still get automatic HTTPS.
+# DNS: A records for raptor-api and raptor-demo on kartikey.xyz (managed in
+# Vercel) point at the droplet; Caddy gets their HTTPS certificates itself.
 
-raptor-api.159-89-169-228.sslip.io {
+raptor-api.kartikey.xyz {
 	encode gzip
 	reverse_proxy 127.0.0.1:3100
 }
 
 # Deliberately insecure demo target (fake keys). See /demo.
-raptor-demo.159-89-169-228.sslip.io {
+raptor-demo.kartikey.xyz {
 	root * /var/www/raptor-demo
 	file_server
 	header Cache-Control "no-store"

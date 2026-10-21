@@ -1,4 +1,8 @@
 .scan-page {
+  background:
+    radial-gradient(50% 280px at 30% 0%, var(--glow-blue), transparent 80%),
+    radial-gradient(45% 260px at 75% 0%, var(--glow-purple), transparent 80%),
+    var(--bg);
   min-height: calc(100vh - var(--nav-height) - 80px);
   min-height: calc(100dvh - var(--nav-height) - 80px);
   padding: clamp(32px, 6vw, 64px) 0 96px;
@@ -74,9 +78,32 @@
 .progress-bar span {
   display: block;
   height: 100%;
-  background: var(--success);
+  background: var(--accent);
   transform-origin: left;
   transition: transform 500ms var(--ease-out);
+}
+
+.queue {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 18px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--separator);
+  color: var(--label-secondary);
+}
+
+.queue .t-headline {
+  color: var(--label);
+}
+
+/* Steps are a preview while queued, so they recede until the scan starts */
+.progress-steps {
+  transition: opacity 300ms var(--ease);
+}
+
+.progress-steps[data-queued='true'] {
+  opacity: 0.55;
 }
 
 .progress-foot {

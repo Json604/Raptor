@@ -10,7 +10,7 @@
   padding: 0 10px;
   margin: -4px -6px -4px 0;
   border-radius: var(--radius-pill);
-  color: var(--label-secondary);
+  color: var(--link);
   font-size: 0.8125rem;
   font-weight: 500;
   transition: background-color 150ms var(--ease), color 150ms var(--ease), transform 160ms var(--ease-out);
@@ -19,7 +19,7 @@
 .copy-quiet:active { transform: scale(0.97); }
 
 @media (hover: hover) and (pointer: fine) {
-  .copy-quiet:hover { background: var(--fill); color: var(--label); }
+  .copy-quiet:hover { background: var(--accent-tint); }
 }
 
 .copy[data-copied='true'].copy-quiet { color: var(--success); }

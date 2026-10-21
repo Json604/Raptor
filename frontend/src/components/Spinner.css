@@ -1,14 +1,18 @@
 .spinner {
   display: inline-block;
   flex: none;
-  animation: spin 700ms linear infinite;
 }
 
-@keyframes spin {
+.spinner svg {
+  /* Eight discrete steps per turn, like iOS. A brisk turn reads as "working". */
+  animation: spinner-step 800ms steps(8, end) infinite;
+}
+
+@keyframes spinner-step {
   to { transform: rotate(360deg); }
 }
 
-/* Reduced motion still needs a sign of life; slow it down rather than freeze it. */
+/* An activity indicator is essential feedback, so it keeps moving, just slower. */
 @media (prefers-reduced-motion: reduce) {
-  .spinner { animation-duration: 1600ms; }
+  .spinner svg { animation-duration: 1600ms; }
 }

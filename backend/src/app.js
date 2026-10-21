@@ -6,6 +6,7 @@ import scanRouter from "./routes/scan.route.js"
 import errorMiddleware from "./middlewares/error.middleware.js"
 import { queueStats } from "./services/jobs.js"
 import { runTool } from "./helpers/scanners/runTool.js"
+import { removeStaleWorkDirs } from "./helpers/scanners/repository.js"
 
 const app = express()
 
@@ -49,13 +50,22 @@ app.use('/api/v1', scanRouter)
 app.use((req, res) => res.status(404).json({ success: false, error: 'Not found' }))
 app.use(errorMiddleware)
 
-app.listen(PORT, async () => {
-    console.log(`Raptor API listening on http://localhost:${PORT}`)
+// Reported by /health. Checked with a generous timeout and retried, because on a
+// busy 1-CPU box TruffleHog can take a while just to start.
+const checkTools = async () => {
     const [gitleaks, trufflehog] = await Promise.all([
-        runTool(GITLEAKS_BIN, ['version'], { timeout: 10000 }),
-        runTool(TRUFFLEHOG_BIN, ['--version'], { timeout: 10000 }),
+        runTool(GITLEAKS_BIN, ['version'], { timeout: 30000 }),
+        runTool(TRUFFLEHOG_BIN, ['--version'], { timeout: 30000 }),
     ])
-    toolVersions.gitleaks = gitleaks.error ? 'missing' : gitleaks.stdout.trim()
-    toolVersions.trufflehog = trufflehog.error ? 'missing' : (trufflehog.stdout + trufflehog.stderr).trim()
+    toolVersions.gitleaks = gitleaks.error ? 'unavailable' : gitleaks.stdout.trim()
+    toolVersions.trufflehog = trufflehog.error ? 'unavailable' : (trufflehog.stdout + trufflehog.stderr).trim()
     console.log('Scanners:', toolVersions)
+    if (gitleaks.error || trufflehog.error) setTimeout(checkTools, 60000).unref()
+}
+
+app.listen(PORT, () => {
+    console.log(`Raptor API listening on http://localhost:${PORT}`)
+    const stale = removeStaleWorkDirs()
+    if (stale) console.log(`Removed ${stale} temp folder(s) left by an interrupted scan`)
+    checkTools()
 })

@@ -204,14 +204,16 @@ a {
   opacity: 0.4;
 }
 
+/* Filled: the single most likely action in a view (HIG: one or two per view) */
 .button-primary {
-  background: var(--button);
-  color: var(--button-label);
+  background: var(--accent);
+  color: var(--accent-label);
 }
 
+/* Tinted: secondary actions */
 .button-secondary {
-  background: var(--fill);
-  color: var(--label);
+  background: var(--accent-tint);
+  color: var(--link);
 }
 
 .button-plain {
@@ -228,8 +230,8 @@ a {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .button-primary:hover:not(:disabled) { background: var(--button-hover); }
-  .button-secondary:hover:not(:disabled) { background: var(--fill-strong); }
+  .button-primary:hover:not(:disabled) { background: var(--accent-hover); }
+  .button-secondary:hover:not(:disabled) { background: var(--accent-tint-hover); }
   .button:hover { text-decoration: none; }
   .button-plain:hover { text-decoration: underline; }
 }

@@ -362,6 +362,18 @@ const auditDependencies = async (repoDir, workDir, coverage, signal) => {
 
 // ---------- Orchestration ----------
 
+// Each scan deletes its own folder when it finishes, even when it fails. This
+// catches the one case that can't: the process being killed mid-scan.
+export const removeStaleWorkDirs = () => {
+    let removed = 0
+    for (const name of fs.readdirSync(os.tmpdir())) {
+        if (!name.startsWith('raptor-')) continue
+        fs.rmSync(path.join(os.tmpdir(), name), { recursive: true, force: true })
+        removed++
+    }
+    return removed
+}
+
 export const scanRepository = async (ref, { step = () => {}, signal } = {}) => {
     const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'raptor-'))
     const coverage = []

@@ -22,6 +22,12 @@ services:
     cpu_shares: 256
     oom_score_adj: 1000
     pids_limit: 256
+    # Read-only filesystem: even a compromised scanner can't change Raptor's code
+    # or plant files. /tmp is the only writable place (a disk volume, not RAM, so
+    # unpacked repos don't count against the memory cap).
+    read_only: true
+    volumes:
+      - scratch:/tmp
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]
     logging:
@@ -29,3 +35,6 @@ services:
       options:
         max-size: 10m
         max-file: "3"
+
+volumes:
+  scratch:

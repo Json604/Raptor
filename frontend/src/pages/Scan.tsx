@@ -19,22 +19,59 @@ import './Scan.css'
 // Faster while scanning (steps change every few seconds), slower while waiting in line.
 const POLL_MS = { running: 900, queued: 2000 }
 const STORAGE_PREFIX = 'raptor:scan:'
+// Same lifetime as on the server, counted from when the scan finished. The
+// browser copy only exists so a refresh or a brief server restart doesn't lose
+// a report; it is never kept longer than the site promises.
+const REPORT_TTL_MS = 2 * 60 * 60 * 1000
+const MAX_SAVED_REPORTS = 20
 
-// Finished reports are also kept in this browser, so a link still opens after
-// the server forgets the scan (2 hours).
-const saveReport = (job: Job) => {
-  try { localStorage.setItem(STORAGE_PREFIX + job.id, JSON.stringify(job)) } catch { /* storage full or blocked */ }
+const isExpired = (job: Job) => !job.result || Date.now() - Date.parse(job.result.scannedAt) > REPORT_TTL_MS
+
+// Drops expired copies, then the oldest ones beyond the cap.
+const pruneReports = () => {
+  const saved: { key: string; finished: number }[] = []
+  for (let index = localStorage.length - 1; index >= 0; index--) {
+    const key = localStorage.key(index)
+    if (!key?.startsWith(STORAGE_PREFIX)) continue
+    try {
+      const job = JSON.parse(localStorage.getItem(key) || 'null') as Job | null
+      if (!job || isExpired(job)) localStorage.removeItem(key)
+      else saved.push({ key, finished: Date.parse(job.result!.scannedAt) })
+    } catch {
+      localStorage.removeItem(key)
+    }
+  }
+  saved.sort((a, b) => b.finished - a.finished).slice(MAX_SAVED_REPORTS).forEach(({ key }) => localStorage.removeItem(key))
 }
+
+const saveReport = (job: Job) => {
+  try {
+    localStorage.setItem(STORAGE_PREFIX + job.id, JSON.stringify(job))
+    pruneReports()
+  } catch { /* storage full or blocked: the report still shows, it just won't survive a refresh */ }
+}
+
 const loadReport = (id: string): Job | null => {
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + id)
-    return raw ? JSON.parse(raw) : null
+    if (!raw) return null
+    const job = JSON.parse(raw) as Job
+    if (isExpired(job)) {
+      localStorage.removeItem(STORAGE_PREFIX + id)
+      return null
+    }
+    return job
   } catch {
     return null
   }
 }
 
 type LoadError = { kind: 'expired' } | { kind: 'error'; message: string }
+
+const ordinal = (n: number) => {
+  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] || 'th'
+  return `${n}${suffix}`
+}
 
 function Targets({ target }: { target: Job['target'] }) {
   return (
@@ -87,7 +124,7 @@ function Progress({ job }: { job: Job }) {
   return (
     <div className="progress container rise">
       <div className="progress-head">
-        <h1 className="t-title1">{queued ? 'Waiting for a free scanner' : 'Scanning'}</h1>
+        <h1 className="t-title1">{queued ? 'Waiting in line' : 'Scanning'}</h1>
         <Targets target={job.target} />
       </div>
 
@@ -102,15 +139,28 @@ function Progress({ job }: { job: Job }) {
         >
           <span style={{ transform: `scaleX(${job.steps.length ? done / job.steps.length : 0})` }} />
         </div>
-        <StepList steps={job.steps} />
+        {queued && (
+          <div className="queue">
+            <Spinner size={22} />
+            <div>
+              <p className="t-headline">{job.position ? `You're ${ordinal(job.position)} in line` : 'Starting'}</p>
+              <p className="t-footnote secondary">
+                {job.target.repo
+                  ? 'Repo scans run one at a time so each one gets the whole machine.'
+                  : 'This usually takes a few seconds.'}
+              </p>
+            </div>
+          </div>
+        )}
+        <div className="progress-steps" data-queued={queued}>
+          <StepList steps={job.steps} />
+        </div>
       </div>
 
       <p className="progress-foot t-footnote secondary">
-        {queued && job.position
-          ? job.target.repo
-            ? `You're number ${job.position} in line. Repo scans run one at a time so every scan gets the whole machine.`
-            : `You're number ${job.position} in line. This usually takes a few seconds.`
-          : `${formatDuration(elapsed)} elapsed${job.target.repo ? ' · repo scans usually take 5–40 seconds' : ''}`}
+        {queued
+          ? `Waiting ${formatDuration(elapsed)}`
+          : `${formatDuration(elapsed)} elapsed${job.target.repo ? ' · repo scans usually take 10–45 seconds' : ''}`}
       </p>
     </div>
   )
@@ -346,7 +396,7 @@ export default function Scan() {
     content = (
       <div className="state container rise">
         <h1 className="t-title1">This scan has expired</h1>
-        <p className="t-body secondary state-text">Raptor keeps results for two hours and doesn't store them anywhere else. Run it again, it only takes a few seconds.</p>
+        <p className="t-body secondary state-text">Results are kept for two hours, then deleted from our server and from your browser. Run it again; it only takes a few seconds.</p>
         <div className="state-actions"><Link to="/" className="button button-primary">New scan</Link></div>
       </div>
     )
@@ -369,7 +419,8 @@ export default function Scan() {
   } else if (job.status === 'done' && job.result) {
     content = <ReportView key={job.id} job={job} />
   } else {
-    content = <Progress job={job} />
+    // Keyed by status so the elapsed clock restarts when a queued scan begins.
+    content = <Progress key={job.status} job={job} />
   }
 
   return (

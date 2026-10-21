@@ -1,12 +1,29 @@
 import './Spinner.css'
 
-// A fast spin reads as "working quickly"; slow spinners make waits feel longer.
+// Apple's activity indicator (UIActivityIndicatorView): eight rounded spokes
+// fading around the circle, rotating in discrete 45° steps rather than smoothly.
+const SPOKES = Array.from({ length: 8 }, (_, index) => ({
+  angle: index * -45,
+  opacity: [1, 0.85, 0.7, 0.58, 0.47, 0.38, 0.3, 0.24][index],
+}))
+
 export default function Spinner({ size = 18, label }: { size?: number; label?: string }) {
   return (
     <span className="spinner" style={{ width: size, height: size }} role={label ? 'status' : undefined} aria-label={label}>
       <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
-        <circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
-        <path d="M12 2.5a9.5 9.5 0 0 1 9.5 9.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        {SPOKES.map(({ angle, opacity }) => (
+          <rect
+            key={angle}
+            x="10.75"
+            y="1.5"
+            width="2.5"
+            height="6.5"
+            rx="1.25"
+            fill="currentColor"
+            opacity={opacity}
+            transform={`rotate(${angle} 12 12)`}
+          />
+        ))}
       </svg>
     </span>
   )

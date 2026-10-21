@@ -142,7 +142,7 @@
   gap: 6px;
   min-height: 44px;
   padding: 0 6px;
-  color: var(--label-secondary);
+  color: var(--link);
   border-radius: var(--radius-sm);
   text-align: left;
   transition: color 150ms var(--ease);
@@ -155,7 +155,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .scan-add:hover { color: var(--label); }
+  .scan-add:hover { opacity: 0.75; }
 }
 
 @media (max-width: 520px) {

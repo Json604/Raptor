@@ -65,7 +65,7 @@ const FAQ = [
   },
   {
     q: 'Do you keep my code?',
-    a: 'No. Repos are downloaded to a temporary folder, scanned, and deleted as soon as the scan finishes. Reports are kept in memory for two hours so you can share the link, then they\'re gone. Leaked keys are always masked in reports.',
+    a: 'No. Repos are downloaded to a temporary folder, scanned, and deleted as soon as the scan finishes. Reports are kept for two hours, in memory on our server and in your browser so a refresh doesn\'t lose them, then they\'re deleted. Leaked keys are always masked.',
   },
   {
     q: 'Can it scan private repos?',
@@ -109,7 +109,7 @@ export default function Home() {
               Free · No sign-up · Results in seconds
             </p>
             <h1 className="t-hero hero-title rise" style={{ '--i': 1 } as React.CSSProperties}>
-              Is your app leaking your API keys?
+              Is your app leaking <span className="hero-gradient">your API keys?</span>
             </h1>
             <p className="hero-sub rise" style={{ '--i': 2 } as React.CSSProperties}>
               Raptor checks your live site and GitHub repo for leaked keys, exposed files and missing protections,

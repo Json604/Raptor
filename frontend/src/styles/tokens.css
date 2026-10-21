@@ -2,8 +2,9 @@
  * Design tokens. Light first, dark follows the system setting (Apple HIG:
  * don't offer an app-specific appearance switch).
  *
- * Color carries meaning only for severity. The brand orange lives in the logo
- * and nowhere else, so "orange" never has two meanings on screen.
+ * Apple blue marks what you can tap: buttons, links, focus, progress. Severity
+ * colors mark findings. The brand orange lives only in the logo. No color ever
+ * means two things (HIG: "Avoid using the same color to mean different things").
  */
 :root {
   color-scheme: light dark;
@@ -27,10 +28,19 @@
   --fill-strong: rgba(120, 120, 128, 0.16);
   --focus-ring: 0 0 0 4px rgba(0, 113, 227, 0.32);
 
-  /* Primary action: monochrome, like Apple's own pages */
-  --button: #1d1d1f;
-  --button-hover: #424245;
-  --button-label: #ffffff;
+  /* Interactive accent: Apple blue (apple.com uses #0071e3 for buttons) */
+  --accent: #0071e3;
+  --accent-hover: #0077ed;
+  --accent-label: #ffffff;
+  --accent-tint: rgba(0, 113, 227, 0.1);
+  --accent-tint-hover: rgba(0, 113, 227, 0.16);
+
+  /* Hero glow, in Apple's system blue, purple, cyan and pink */
+  --glow-blue: rgba(0, 113, 227, 0.16);
+  --glow-purple: rgba(175, 82, 222, 0.14);
+  --glow-cyan: rgba(50, 173, 230, 0.16);
+  --glow-pink: rgba(255, 45, 85, 0.07);
+  --headline-gradient: linear-gradient(100deg, #0071e3 5%, #7a4fe0 55%, #d63f8c 100%);
 
   --brand: #ff6a00;
 
@@ -43,8 +53,8 @@
   --medium-tint: rgba(255, 204, 0, 0.16);
   --low: #6e6e73;
   --low-tint: rgba(120, 120, 128, 0.12);
-  --info: #0066cc;
-  --info-tint: rgba(0, 122, 255, 0.08);
+  --info: #0e7c86;
+  --info-tint: rgba(48, 176, 199, 0.12);
   --success: #248a3d;
   --success-tint: rgba(52, 199, 89, 0.12);
 
@@ -99,9 +109,17 @@
     --fill-strong: rgba(118, 118, 128, 0.3);
     --focus-ring: 0 0 0 4px rgba(41, 151, 255, 0.4);
 
-    --button: #f5f5f7;
-    --button-hover: #d2d2d7;
-    --button-label: #1d1d1f;
+    --accent: #0071e3;
+    --accent-hover: #0077ed;
+    --accent-label: #ffffff;
+    --accent-tint: rgba(41, 151, 255, 0.16);
+    --accent-tint-hover: rgba(41, 151, 255, 0.24);
+
+    --glow-blue: rgba(10, 132, 255, 0.3);
+    --glow-purple: rgba(191, 90, 242, 0.26);
+    --glow-cyan: rgba(100, 210, 255, 0.18);
+    --glow-pink: rgba(255, 55, 95, 0.14);
+    --headline-gradient: linear-gradient(100deg, #2997ff 5%, #a78bff 55%, #ff6fb0 100%);
 
     --critical: #ff6961;
     --critical-tint: rgba(255, 69, 58, 0.16);
@@ -111,8 +129,8 @@
     --medium-tint: rgba(255, 214, 10, 0.14);
     --low: #a1a1a6;
     --low-tint: rgba(118, 118, 128, 0.22);
-    --info: #64b5ff;
-    --info-tint: rgba(10, 132, 255, 0.16);
+    --info: #5ac8d5;
+    --info-tint: rgba(64, 200, 224, 0.16);
     --success: #4cd964;
     --success-tint: rgba(48, 209, 88, 0.14);
 

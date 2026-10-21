@@ -109,7 +109,7 @@ export default function Home() {
               Free · No sign-up · Results in seconds
             </p>
             <h1 className="t-hero hero-title rise" style={{ '--i': 1 } as React.CSSProperties}>
-              Is your app leaking <span className="hero-gradient">your API keys?</span>
+              Is your app leaking your API keys?
             </h1>
             <p className="hero-sub rise" style={{ '--i': 2 } as React.CSSProperties}>
               Raptor checks your live site and GitHub repo for leaked keys, exposed files and missing protections,
@@ -169,7 +169,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="faq" className="section section-alt">
+        <section id="faq" className="section section-alt section-alt-end">
           <div className="container">
             <header className="section-header">
               <h2 className="t-large">Questions</h2>

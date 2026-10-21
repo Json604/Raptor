@@ -1,8 +1,4 @@
 .scan-page {
-  background:
-    radial-gradient(50% 280px at 30% 0%, var(--glow-blue), transparent 80%),
-    radial-gradient(45% 260px at 75% 0%, var(--glow-purple), transparent 80%),
-    var(--bg);
   min-height: calc(100vh - var(--nav-height) - 80px);
   min-height: calc(100dvh - var(--nav-height) - 80px);
   padding: clamp(32px, 6vw, 64px) 0 96px;

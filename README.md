@@ -6,13 +6,13 @@ Live at **[raptorscan.netlify.app](https://raptorscan.netlify.app)**. No sign-up
 
 ## What it checks
 
-| | Website | Repository |
-| --- | --- | --- |
-| **Leaked secrets** | OpenAI, Stripe, Supabase `service_role`, AWS, GitHub and other keys shipped in your JavaScript bundle | Gitleaks + TruffleHog over every file; TruffleHog confirms which keys **still work** |
-| **Exposed files** | Public `/.env`, `/.env.local`, `/.env.production`, `/.git/` | `.env` files with real secrets committed, including secrets behind `VITE_` / `NEXT_PUBLIC_` prefixes |
-| **Databases** | Supabase anon key found → RLS reminder | Firebase / Firestore / Storage rules left open or in test mode |
-| **Transport & headers** | HTTPS, HTTP→HTTPS redirect, HSTS, CSP, clickjacking, nosniff, cookies, CORS origin reflection | |
-| **Dependencies** | | `npm audit` on production dependencies |
+|                               | Website                                                                                                 | Repository                                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| **Leaked secrets**      | OpenAI, Stripe, Supabase `service_role`, AWS, GitHub and other keys shipped in your JavaScript bundle | Gitleaks + TruffleHog over every file; TruffleHog confirms which keys **still work**                 |
+| **Exposed files**       | Public `/.env`, `/.env.local`, `/.env.production`, `/.git/`                                     | `.env` files with real secrets committed, including secrets behind `VITE_` / `NEXT_PUBLIC_` prefixes |
+| **Databases**           | Supabase anon key found → RLS reminder                                                                 | Firebase / Firestore / Storage rules left open or in test mode                                             |
+| **Transport & headers** | HTTPS, HTTP→HTTPS redirect, HSTS, CSP, clickjacking, nosniff, cookies, CORS origin reflection          |                                                                                                            |
+| **Dependencies**        |                                                                                                         | `npm audit` on production dependencies                                                                   |
 
 Fixes are written for the host it detects (Netlify, Vercel, Next.js, Express), and the report can be copied as a prompt for Cursor, Claude Code, Lovable or Bolt.
 
@@ -45,11 +45,11 @@ Or run the API exactly as production does: `cd backend && docker compose up --bu
 
 ## API
 
-| | |
-| --- | --- |
-| `POST /api/v1/scans` | Body `{ "url"?: string, "repo"?: string }`. Returns `202` with a job (`id`, `status`, `steps`). |
+|                           |                                                                                                                   |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `POST /api/v1/scans`    | Body `{ "url"?: string, "repo"?: string }`. Returns `202` with a job (`id`, `status`, `steps`).         |
 | `GET /api/v1/scans/:id` | Poll for progress. When `status` is `done`, `result` holds the report. Jobs are kept in memory for 2 hours. |
-| `GET /api/v1/health` | Uptime, memory, queue and scanner versions. |
+| `GET /api/v1/health`    | Uptime, memory, queue and scanner versions.                                                                       |
 
 Repo scans run one at a time (the server has 1 GB of RAM); queued jobs report their position.
 

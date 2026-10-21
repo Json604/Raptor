@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { GitHubIcon, LogoMark } from './Icons'
+import { GitHubIcon, LogoMark, XIcon } from './Icons'
 import { SITE } from '../lib/site'
 import './Nav.css'
 
@@ -24,6 +24,16 @@ export default function Nav({ showSections = false, showNewScan = false }: { sho
           )}
           <a
             className="nav-icon"
+            href={SITE.twitter}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Raptor's maker on X"
+            title="Follow on X"
+          >
+            <XIcon size={17} />
+          </a>
+          <a
+            className="nav-icon nav-icon-last"
             href={SITE.repoUrl}
             target="_blank"
             rel="noreferrer"

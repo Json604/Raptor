@@ -175,7 +175,10 @@ const secretFinding = (group) => {
 }
 
 const scanSecrets = async (repoDir, workDir, coverage) => {
-    const [gitleaks, trufflehog] = await Promise.all([runGitleaks(repoDir, workDir), runTrufflehog(repoDir, workDir)])
+    // One after the other, not in parallel: it roughly halves peak memory, which
+    // matters more than a few seconds on a small shared server.
+    const gitleaks = await runGitleaks(repoDir, workDir)
+    const trufflehog = await runTrufflehog(repoDir, workDir)
     if (!gitleaks.ok) coverage.push({ check: 'Gitleaks', status: 'failed', note: gitleaks.timedOut ? 'Gitleaks ran out of time on this repo.' : 'Gitleaks couldn\'t finish on this repo.' })
     if (!trufflehog.ok) coverage.push({ check: 'TruffleHog', status: 'failed', note: trufflehog.timedOut ? 'TruffleHog ran out of time on this repo.' : 'TruffleHog couldn\'t finish on this repo.' })
     if (!gitleaks.ok && !trufflehog.ok) {

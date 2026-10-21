@@ -47,7 +47,7 @@ export const startScan = ({ url, repo }) => {
             repo: repoRef ? `${repoRef.owner}/${repoRef.repo}` : null,
         },
         steps: [...(website ? WEBSITE_STEPS : []), ...(repoRef ? REPO_STEPS : [])],
-        needsRepoSlot: Boolean(repoRef),
+        lane: repoRef ? 'repo' : 'web',
         task: async ({ step }) => {
             const startedAt = Date.now()
             const [websiteResult, codeResult] = await Promise.allSettled([

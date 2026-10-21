@@ -1,32 +1,43 @@
 import { randomUUID } from "crypto";
-import { MAX_CONCURRENT_REPO_SCANS, MAX_QUEUED_SCANS } from "../config/env.js";
+import { MAX_CONCURRENT_REPO_SCANS, MAX_CONCURRENT_WEB_SCANS, MAX_QUEUED_SCANS } from "../config/env.js";
 
 // Scans run in the background and the browser polls for progress. That keeps
 // requests short (no proxy timeouts on 40-second repo scans) and lets the UI show
 // real step-by-step progress and queue position instead of a fake progress bar.
+//
+// Each kind of scan has its own lane with a concurrency limit. The server is a
+// small droplet shared with other apps, so work queues up instead of piling on.
 
 const JOB_TTL_MS = 2 * 60 * 60 * 1000
 const MAX_JOBS = 1000
 
 const jobs = new Map()
-const waiting = []
-let running = 0
+const lanes = {
+    repo: { limit: MAX_CONCURRENT_REPO_SCANS, running: 0, waiting: [] },
+    web: { limit: MAX_CONCURRENT_WEB_SCANS, running: 0, waiting: [] },
+}
 
-const pump = () => {
-    while (running < MAX_CONCURRENT_REPO_SCANS && waiting.length) {
-        const { start } = waiting.shift()
-        running++
+const pump = (lane) => {
+    while (lane.running < lane.limit && lane.waiting.length) {
+        const { start } = lane.waiting.shift()
+        lane.running++
         start().finally(() => {
-            running--
-            pump()
+            lane.running--
+            pump(lane)
         })
     }
 }
 
-export const queueStats = () => ({ runningRepoScans: running, waiting: waiting.length, jobs: jobs.size })
+export const queueStats = () => ({
+    repo: { running: lanes.repo.running, waiting: lanes.repo.waiting.length },
+    web: { running: lanes.web.running, waiting: lanes.web.waiting.length },
+    jobs: jobs.size,
+})
 
-export const submitJob = ({ target, steps, needsRepoSlot, task }) => {
-    if (waiting.length >= MAX_QUEUED_SCANS || jobs.size >= MAX_JOBS) {
+export const submitJob = ({ target, steps, lane: laneName, task }) => {
+    const lane = lanes[laneName]
+    const queued = lanes.repo.waiting.length + lanes.web.waiting.length
+    if (queued >= MAX_QUEUED_SCANS || jobs.size >= MAX_JOBS) {
         const error = new Error('Raptor is busy right now. Please try again in a minute.')
         error.status = 503
         error.expose = true
@@ -35,6 +46,7 @@ export const submitJob = ({ target, steps, needsRepoSlot, task }) => {
 
     const job = {
         id: randomUUID(),
+        lane: laneName,
         status: 'queued',
         target,
         steps: steps.map(([key, label]) => ({ key, label, state: 'pending' })),
@@ -70,19 +82,15 @@ export const submitJob = ({ target, steps, needsRepoSlot, task }) => {
         }
     }
 
-    if (needsRepoSlot) {
-        waiting.push({ job, start })
-        pump()
-    } else {
-        start()
-    }
+    lane.waiting.push({ job, start })
+    pump(lane)
     return job
 }
 
 export const getJob = (id) => {
     const job = jobs.get(id)
     if (!job) return null
-    const position = waiting.findIndex(entry => entry.job.id === id)
+    const position = lanes[job.lane].waiting.findIndex(entry => entry.job.id === id)
     return {
         id: job.id,
         status: job.status,

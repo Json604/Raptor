@@ -24,6 +24,8 @@ export const CORS_ORIGINS = process.env.CORS_ORIGINS
 // Netlify deploy previews: https://<hash>--raptorscan.netlify.app
 export const CORS_ORIGIN_PATTERNS = [/^https:\/\/[a-z0-9-]+--raptorscan\.netlify\.app$/]
 
-// Repo scans are the memory-heavy part, so they run one at a time.
+// Repo scans are the memory-heavy part, so they run one at a time. Website scans
+// are light but still capped: this runs on a small droplet shared with other apps.
 export const MAX_CONCURRENT_REPO_SCANS = Number(process.env.MAX_CONCURRENT_REPO_SCANS) || 1
+export const MAX_CONCURRENT_WEB_SCANS = Number(process.env.MAX_CONCURRENT_WEB_SCANS) || 3
 export const MAX_QUEUED_SCANS = Number(process.env.MAX_QUEUED_SCANS) || 20

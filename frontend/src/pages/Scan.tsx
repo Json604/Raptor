@@ -106,7 +106,9 @@ function Progress({ job }: { job: Job }) {
 
       <p className="progress-foot t-footnote secondary">
         {queued && job.position
-          ? `You're number ${job.position} in line. Repo scans run one at a time so every scan gets the whole machine.`
+          ? job.target.repo
+            ? `You're number ${job.position} in line. Repo scans run one at a time so every scan gets the whole machine.`
+            : `You're number ${job.position} in line. This usually takes a few seconds.`
           : `${formatDuration(elapsed)} elapsed${job.target.repo ? ' · repo scans usually take 5–40 seconds' : ''}`}
       </p>
     </div>

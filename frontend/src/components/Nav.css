@@ -64,10 +64,14 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  margin-right: -10px;
   color: var(--label-secondary);
   border-radius: var(--radius-pill);
   transition: color 150ms var(--ease), transform 160ms var(--ease-out);
+}
+
+/* Keeps the last icon's glyph aligned with the page edge while its hit area stays 44px */
+.nav-icon-last {
+  margin-right: -10px;
 }
 
 .nav-icon:active {

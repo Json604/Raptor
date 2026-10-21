@@ -5,6 +5,7 @@ import { findSecretsInText, maskSecret, classifyJwt, serviceFromDetector, looksL
 // Fixtures are assembled at runtime so secret scanners (including Raptor itself)
 // don't flag this file. None of these are real keys.
 const STRIPE_LIVE = ['sk', 'live', '4eC39HqLyjWDarjtT1zdp7dc'].join('_')
+const DB_URL = ['postgres://app', 'Xk29fjQ@db.prod.acme.io/app'].join(':')
 
 const jwt = (payload) => [
     Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url'),
@@ -35,7 +36,7 @@ test('random JWTs and placeholders are not reported', () => {
     assert.equal(findSecretsInText(`token = "${jwt({ sub: '123', name: 'demo' })}"`).length, 0)
     assert.equal(findSecretsInText('apiKey: "sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"').length, 0)
     assert.equal(looksLikePlaceholder('postgres://user:password@localhost:5432/db'), true)
-    assert.equal(looksLikePlaceholder('postgres://app:Xk29fjQ@db.prod.acme.io/app'), false)
+    assert.equal(looksLikePlaceholder(DB_URL), false)
 })
 
 test('masking never reveals enough of a secret to use it', () => {

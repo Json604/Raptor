@@ -7,6 +7,7 @@ import { checkConfig } from "../src/helpers/scanners/repository.js"
 
 // Assembled at runtime so secret scanners don't flag this file. Not a real key.
 const FAKE_KEY = ['sk', '9f8e7d6c5b4a'].join('-')
+const FAKE_DB = ['postgres://app', 'Xk29fjQ@db.acme.io/app'].join(':')
 
 const fixture = (files) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'raptor-test-'))
@@ -28,7 +29,7 @@ test('env files with only public config are not flagged', async () => {
 })
 
 test('env files with server secrets are flagged', async () => {
-    const dir = fixture({ '.env': `OPENAI_API_KEY=${FAKE_KEY}\nDATABASE_URL=postgres://app:Xk29fjQ@db.acme.io/app\nPORT=3000\n` })
+    const dir = fixture({ '.env': `OPENAI_API_KEY=${FAKE_KEY}\nDATABASE_URL=${FAKE_DB}\nPORT=3000\n` })
     const { findings } = await checkConfig(dir)
     assert.equal(findings.length, 1)
     assert.equal(findings[0].severity, 'high')

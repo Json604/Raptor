@@ -1,66 +1,34 @@
-# Raptor Security Scanner - Railway Dockerfile
-# Uses native binaries instead of Docker-in-Docker for better performance
+# Raptor API: Node + Gitleaks + TruffleHog in one small image.
+FROM node:22-alpine
 
-FROM node:18-alpine
+# Pinned and checksum-verified: these binaries read untrusted code, so we want
+# exactly the build we tested, not whatever "latest" is today.
+ARG GITLEAKS_VERSION=8.30.1
+ARG GITLEAKS_SHA256=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+ARG TRUFFLEHOG_VERSION=3.97.9
+ARG TRUFFLEHOG_SHA256=40377e6572495412fb9ba0bc21c9401f73b72f1d2afd11b9931bc4a5ed622866
 
-# Install dependencies for downloading and running security tools
-RUN apk add --no-cache \
-    git \
-    curl \
-    wget \
-    unzip \
-    tar \
-    bash
+RUN apk add --no-cache ca-certificates tini \
+ && wget -qO /tmp/gitleaks.tar.gz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+ && echo "${GITLEAKS_SHA256}  /tmp/gitleaks.tar.gz" | sha256sum -c - \
+ && tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks \
+ && wget -qO /tmp/trufflehog.tar.gz "https://github.com/trufflesecurity/trufflehog/releases/download/v${TRUFFLEHOG_VERSION}/trufflehog_${TRUFFLEHOG_VERSION}_linux_amd64.tar.gz" \
+ && echo "${TRUFFLEHOG_SHA256}  /tmp/trufflehog.tar.gz" | sha256sum -c - \
+ && tar -xzf /tmp/trufflehog.tar.gz -C /usr/local/bin trufflehog \
+ && rm /tmp/*.tar.gz \
+ && gitleaks version && trufflehog --version
 
 WORKDIR /app
-
-# Install TruffleHog binary
-RUN echo "📦 Installing TruffleHog..." && \
-    curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin && \
-    trufflehog --version && \
-    echo "✅ TruffleHog installed"
-
-# Install Gitleaks binary
-RUN echo "📦 Installing Gitleaks..." && \
-    wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.1/gitleaks_8.18.1_linux_x64.tar.gz && \
-    tar -xzf gitleaks_8.18.1_linux_x64.tar.gz && \
-    mv gitleaks /usr/local/bin/ && \
-    rm gitleaks_8.18.1_linux_x64.tar.gz && \
-    gitleaks version && \
-    echo "✅ Gitleaks installed"
-
-# Install Nuclei binary (required for web vulnerability scanning)
-RUN echo "📦 Installing Nuclei..." && \
-    wget -O nuclei.zip https://github.com/projectdiscovery/nuclei/releases/download/v3.4.10/nuclei_3.4.10_linux_amd64.zip && \
-    unzip -o nuclei.zip && \
-    chmod +x nuclei && \
-    mv nuclei /usr/local/bin/ && \
-    rm -f nuclei.zip *.md && \
-    nuclei -version && \
-    echo "✅ Nuclei installed"
-
-# Update Nuclei templates to get latest vulnerability checks
-RUN echo "📦 Updating Nuclei templates..." && \
-    nuclei -update-templates && \
-    echo "✅ Nuclei templates updated"
-
-# Copy package files
 COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+COPY src ./src
 
-# Install Node.js dependencies
-RUN npm ci --only=production && \
-    npm cache clean --force
-
-# Copy application code
-COPY . .
-
-# Expose port
+ENV NODE_ENV=production PORT=3000
+USER node
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/v1/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/api/v1/health > /dev/null || exit 1
 
-# Start the application
-CMD ["npm", "start"]
-
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "src/app.js"]

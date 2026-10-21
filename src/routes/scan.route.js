@@ -1,17 +1,22 @@
 import { Router } from "express"
-import { githubUrlScan, webUrlScan, fullApplicationScan,deepGithubUrlScan, deepWebUrlScan, deepFullApplicationScan } from "../controllers/scan.controller.js"
+import rateLimit from "express-rate-limit"
+import { createScan, getScan } from "../controllers/scan.controller.js"
 
 const scanRouter = Router()
 
+// Polling is cheap; starting scans is not.
+const scanLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    limit: 15,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    handler: (req, res) => res.status(429).json({
+        success: false,
+        error: "You've started a lot of scans in the last few minutes. Take a breather and try again shortly.",
+    }),
+})
 
-// QUICK SCAN ROUTES (Free - No Nuclei)
-scanRouter.post('/scan/quick/github', githubUrlScan)
-scanRouter.post('/scan/quick/web', webUrlScan)
-scanRouter.post('/scan/quick/full', fullApplicationScan)
-
-// DEEP SCAN ROUTES (Paid - With Nuclei)
-scanRouter.post('/scan/deep/github', deepGithubUrlScan)
-scanRouter.post('/scan/deep/web', deepWebUrlScan)
-scanRouter.post('/scan/deep/full', deepFullApplicationScan)
+scanRouter.post('/scans', scanLimiter, createScan)
+scanRouter.get('/scans/:id', getScan)
 
 export default scanRouter

@@ -1,53 +1,59 @@
 import express from "express"
-import { PORT } from "./config/env.js"
+import cors from "cors"
+import rateLimit from "express-rate-limit"
+import { PORT, CORS_ORIGINS, CORS_ORIGIN_PATTERNS, GITLEAKS_BIN, TRUFFLEHOG_BIN } from "./config/env.js"
 import scanRouter from "./routes/scan.route.js"
 import errorMiddleware from "./middlewares/error.middleware.js"
-import cors from 'cors'
-import rateLimit from "express-rate-limit"
-import waitlistRouter from "./routes/waitlist.route.js"
-import connectToDB from "./databse/db.js"
+import { queueStats } from "./services/jobs.js"
+import { runTool } from "./helpers/scanners/runTool.js"
 
 const app = express()
 
-// Global Rate Limiter — limits all incoming requests
-const globalLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 30, // Limit each IP to 60 requests per window
-  message: {
-    error: "Too many requests",
-    message: "You've exceeded the request limit. Try again later.",
-  },
-  standardHeaders: true,
-  legacyHeaders: false, 
-  handler: (req, res, next, options) => {
-    res.status(options.statusCode).json(options.message);
-  },
-});
+// Caddy sits in front; without this every visitor shares Caddy's IP and one rate limit.
+app.set('trust proxy', 1)
+app.disable('x-powered-by')
 
-app.use(globalLimiter);
-
-app.use(express.json())
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://raptor.support",
-    "https://raptorfe.netlify.app",
-    "https://www.raptor.support"
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+    origin: [...CORS_ORIGINS, ...CORS_ORIGIN_PATTERNS],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type'],
+    maxAge: 86400,
+}))
+
+app.use(rateLimit({
+    windowMs: 60 * 1000,
+    limit: 120, // generous: the results page polls about once a second
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    handler: (req, res) => res.status(429).json({ success: false, error: 'Too many requests. Try again in a minute.' }),
+}))
+
+app.use(express.json({ limit: '8kb' }))
+
+const toolVersions = {}
+
+app.get('/api/v1/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        uptime: Math.round(process.uptime()),
+        memoryMb: Math.round(process.memoryUsage().rss / 1024 / 1024),
+        queue: queueStats(),
+        tools: toolVersions,
+    })
+})
 
 app.use('/api/v1', scanRouter)
-app.use('/api/v1', waitlistRouter)
 
+app.use((req, res) => res.status(404).json({ success: false, error: 'Not found' }))
 app.use(errorMiddleware)
 
-app.get('/api/v1/health', (req,res) => {res.send("Raptor Health check route.")})
-
-app.listen(PORT, async() => {
-    console.log(`The Server is running on http://localhost:${PORT}`);
-    
-    await connectToDB()
+app.listen(PORT, async () => {
+    console.log(`Raptor API listening on http://localhost:${PORT}`)
+    const [gitleaks, trufflehog] = await Promise.all([
+        runTool(GITLEAKS_BIN, ['version'], { timeout: 10000 }),
+        runTool(TRUFFLEHOG_BIN, ['--version'], { timeout: 10000 }),
+    ])
+    toolVersions.gitleaks = gitleaks.error ? 'missing' : gitleaks.stdout.trim()
+    toolVersions.trufflehog = trufflehog.error ? 'missing' : (trufflehog.stdout + trufflehog.stderr).trim()
+    console.log('Scanners:', toolVersions)
 })

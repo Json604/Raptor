@@ -60,6 +60,9 @@ const checkTools = async () => {
     toolVersions.gitleaks = gitleaks.error ? 'unavailable' : gitleaks.stdout.trim()
     toolVersions.trufflehog = trufflehog.error ? 'unavailable' : (trufflehog.stdout + trufflehog.stderr).trim()
     console.log('Scanners:', toolVersions)
+    if (gitleaks.error?.code === 'ENOENT' || trufflehog.error?.code === 'ENOENT') {
+        console.warn('⚠ Gitleaks/TruffleHog not found. Repo scans will fail until you run: npm run setup')
+    }
     if (gitleaks.error || trufflehog.error) setTimeout(checkTools, 60000).unref()
 }
 

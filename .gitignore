@@ -20,3 +20,6 @@ npm-debug.log*
 .idea
 .DS_Store
 *.sw?
+
+# Scanner binaries installed by `npm run setup`
+backend/bin/

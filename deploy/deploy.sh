@@ -8,7 +8,7 @@ HOST="${1:-droplet}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "→ API"
-rsync -az --delete --exclude node_modules --exclude '.env*' --exclude test --exclude .DS_Store \
+rsync -az --delete --exclude node_modules --exclude '.env*' --exclude test --exclude bin --exclude .DS_Store \
   "$ROOT/backend/" "$HOST:/opt/raptor/backend/"
 ssh "$HOST" 'cd /opt/raptor/backend && docker compose up -d --build --remove-orphans && docker image prune -f > /dev/null'
 

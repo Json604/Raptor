@@ -25,7 +25,7 @@ const runGitleaks = async (repoDir, workDir, signal) => {
         '--exit-code', '0',
         '--max-target-megabytes', '5',
     ], { timeout: 120000, home: workDir, signal })
-    if (error) return { ok: false, timedOut, hits: [] }
+    if (error) return { ok: false, timedOut, missing: error.code === 'ENOENT', hits: [] }
     try {
         const results = JSON.parse(fs.readFileSync(report, 'utf8'))
         return {
@@ -48,7 +48,7 @@ const runTrufflehog = async (repoDir, workDir, signal) => {
     const { error, stdout, timedOut } = await runTool(TRUFFLEHOG_BIN, [
         'filesystem', repoDir, '--json', '--no-update',
     ], { timeout: 150000, home: workDir, signal })
-    if (error && !stdout) return { ok: false, timedOut, hits: [] }
+    if (error && !stdout) return { ok: false, timedOut, missing: error.code === 'ENOENT', hits: [] }
     const hits = []
     for (const line of stdout.split('\n')) {
         if (!line.startsWith('{')) continue
@@ -181,6 +181,13 @@ const scanSecrets = async (repoDir, workDir, coverage, signal) => {
     const trufflehog = await runTrufflehog(repoDir, workDir, signal)
     if (!gitleaks.ok) coverage.push({ check: 'Gitleaks', status: 'failed', note: gitleaks.timedOut ? 'Gitleaks ran out of time on this repo.' : 'Gitleaks couldn\'t finish on this repo.' })
     if (!trufflehog.ok) coverage.push({ check: 'TruffleHog', status: 'failed', note: trufflehog.timedOut ? 'TruffleHog ran out of time on this repo.' : 'TruffleHog couldn\'t finish on this repo.' })
+    if (gitleaks.missing && trufflehog.missing) {
+        // Only happens in local development; production ships them in the image.
+        const error = new Error("This server doesn't have Gitleaks or TruffleHog installed. Run `npm run setup` in backend/, then restart the server.")
+        error.status = 500
+        error.expose = true
+        throw error
+    }
     if (!gitleaks.ok && !trufflehog.ok) {
         const error = new Error('Our secret scanners failed on this repo. Please try again.')
         error.status = 502

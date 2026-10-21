@@ -28,10 +28,11 @@ deploy/    Droplet deploy script and Caddy config
 ## Run locally
 
 ```bash
-# API (needs gitleaks and trufflehog on your PATH: brew install gitleaks trufflehog)
+# API
 cd backend
 npm install
-npm run dev          # http://localhost:3000
+npm run dev          # http://localhost:3000; first run downloads the pinned,
+                     # checksum-verified Gitleaks + TruffleHog into backend/bin
 npm test
 
 # Site

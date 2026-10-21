@@ -1,4 +1,7 @@
 import { config } from "dotenv";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 config({ path: `.env.local` })
 
@@ -7,8 +10,15 @@ export const PORT = Number(process.env.PORT) || 3000
 // Optional. Raises the GitHub API limit from 60 to 5000 requests/hour.
 export const GITHUB_TOKEN = process.env.GITHUB_TOKEN || ''
 
-export const GITLEAKS_BIN = process.env.GITLEAKS_BIN || 'gitleaks'
-export const TRUFFLEHOG_BIN = process.env.TRUFFLEHOG_BIN || 'trufflehog'
+// Locally, `npm run setup` installs pinned builds into backend/bin. In Docker
+// they live on the PATH instead.
+const localBin = (name) => {
+    const file = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'bin', name)
+    return fs.existsSync(file) ? file : name
+}
+
+export const GITLEAKS_BIN = process.env.GITLEAKS_BIN || localBin('gitleaks')
+export const TRUFFLEHOG_BIN = process.env.TRUFFLEHOG_BIN || localBin('trufflehog')
 export const NPM_BIN = process.env.NPM_BIN || 'npm'
 
 const defaultOrigins = [

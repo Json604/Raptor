@@ -58,6 +58,14 @@
 
   --material: rgba(255, 255, 255, 0.72);
 
+  /* Frosted-glass navigation pill */
+  --glass: rgba(255, 255, 255, 0.5);
+  --glass-condensed: rgba(255, 255, 255, 0.62);
+  --glass-edge: rgba(0, 0, 0, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.8);
+  --glass-shadow: rgba(0, 0, 0, 0.05);
+  --glass-shadow-condensed: rgba(0, 0, 0, 0.1);
+
   /* Shape */
   --radius-xl: 28px;
   --radius-lg: 20px;
@@ -74,12 +82,14 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* iOS sheet curve (via Ionic): quick start, long gentle settle */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* Layout */
   --content: 980px;
   --wide: 1120px;
   --gutter: 20px;
-  --nav-height: 52px;
+  --nav-height: 74px; /* pill (60) + its top offset */
 }
 
 @media (min-width: 734px) {
@@ -129,5 +139,12 @@
     --shadow-raised: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 16px 48px rgba(0, 0, 0, 0.5);
 
     --material: rgba(22, 22, 23, 0.72);
+
+    --glass: rgba(44, 44, 48, 0.45);
+    --glass-condensed: rgba(44, 44, 48, 0.6);
+    --glass-edge: rgba(255, 255, 255, 0.12);
+    --glass-highlight: rgba(255, 255, 255, 0.1);
+    --glass-shadow: rgba(0, 0, 0, 0.35);
+    --glass-shadow-condensed: rgba(0, 0, 0, 0.55);
   }
 }

@@ -6,8 +6,9 @@
 
 .history-panel {
   position: absolute;
-  top: calc(100% + 8px);
-  right: -6px;
+  /* Clears the bottom of the nav pill with a little air */
+  top: calc(100% + 16px);
+  right: -2px;
   width: min(340px, calc(100vw - 24px));
   max-height: min(460px, calc(100dvh - var(--nav-height) - 24px));
   overflow-y: auto;

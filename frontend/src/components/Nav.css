@@ -1,24 +1,68 @@
+/*
+ * Floating frosted-glass pill. Full width at the top of the page; once you scroll it
+ * condenses (narrower, shorter, a touch higher) with the iOS sheet curve.
+ * Transitions, not keyframes, so scrolling back mid-animation reverses smoothly.
+ */
 .nav {
   position: sticky;
   top: 0;
   z-index: 50;
-  height: var(--nav-height);
-  /* Thick material: enough opacity that text over scrolling content stays legible */
-  background: var(--material);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid var(--separator);
+  padding: 12px 12px 0;
+  /* Only the pill takes clicks; the page stays usable around it */
+  pointer-events: none;
 }
 
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .nav { background: var(--bg); }
+@media (min-width: 734px) {
+  .nav { padding: 14px 24px 0; }
 }
 
-.nav-inner {
-  height: 100%;
+.nav-pill {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  max-width: calc(var(--wide) + 24px);
+  height: 60px;
+  margin: 0 auto;
+  padding: 0 8px 0 20px;
+  border-radius: var(--radius-pill);
+  pointer-events: auto;
+  /* Frosted glass: a heavy blur and a lift in saturation behind a thin, bright
+     tint, so whatever scrolls underneath turns into soft, glowing color */
+  background: var(--glass);
+  backdrop-filter: blur(32px) saturate(190%) brightness(1.04);
+  -webkit-backdrop-filter: blur(32px) saturate(190%) brightness(1.04);
+  box-shadow:
+    0 0 0 0.5px var(--glass-edge),
+    inset 0 1px 0 var(--glass-highlight),
+    0 8px 30px var(--glass-shadow);
+  transition:
+    max-width 600ms var(--ease-ios),
+    height 450ms var(--ease-ios),
+    transform 450ms var(--ease-ios),
+    background-color 300ms var(--ease),
+    box-shadow 300ms var(--ease);
+}
+
+.nav[data-scrolled='true'] .nav-pill {
+  max-width: 760px;
+  height: 52px;
+  transform: translateY(-4px);
+  background: var(--glass-condensed);
+  box-shadow:
+    0 0 0 0.5px var(--glass-edge),
+    inset 0 1px 0 var(--glass-highlight),
+    0 12px 40px var(--glass-shadow-condensed);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav-pill,
+  .nav[data-scrolled='true'] .nav-pill { background: var(--surface-elevated); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-pill { transition: background-color 200ms var(--ease), box-shadow 200ms var(--ease); }
 }
 
 .nav-brand {
@@ -41,7 +85,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .nav-link {
@@ -51,7 +95,7 @@
   padding: 0 12px;
   color: var(--label-secondary);
   font-size: 0.875rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   transition: color 150ms var(--ease);
 }
 
@@ -67,12 +111,7 @@
   height: 44px;
   color: var(--label-secondary);
   border-radius: var(--radius-pill);
-  transition: color 150ms var(--ease), transform 160ms var(--ease-out);
-}
-
-/* Keeps the last icon's glyph aligned with the page edge while its hit area stays 44px */
-.nav-icon-last {
-  margin-right: -10px;
+  transition: color 150ms var(--ease), background-color 150ms var(--ease), transform 160ms var(--ease-out);
 }
 
 .nav-icon:active {
@@ -89,4 +128,5 @@
     color: var(--label);
     text-decoration: none;
   }
+  .nav-icon:hover { background: var(--fill); }
 }

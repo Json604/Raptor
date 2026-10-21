@@ -74,7 +74,7 @@ export const assertPublicUrl = (url) => {
     }
 }
 
-const USER_AGENT = 'RaptorSecurityScanner/1.0 (+https://raptor.support)'
+const USER_AGENT = 'RaptorSecurityScanner/1.0 (+https://raptorscan.netlify.app)'
 
 // GET with manual redirect handling so every hop goes through assertPublicUrl.
 export const safeGet = async (input, { headers = {}, maxBytes = 3 * 1024 * 1024, timeout = 10000, maxRedirects = 5 } = {}) => {

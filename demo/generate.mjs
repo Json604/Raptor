@@ -34,7 +34,7 @@ writeFileSync(join(out, 'index.html'), `<!doctype html>
 </style>
 </head>
 <body>
-<p class="note"><strong>This site is deliberately insecure.</strong> It's a demo target for <a href="https://raptor.support">Raptor</a>. Every key on it is fake.</p>
+<p class="note"><strong>This site is deliberately insecure.</strong> It's a demo target for <a href="https://raptorscan.netlify.app">Raptor</a>. Every key on it is fake.</p>
 <h1>ChatterBox</h1>
 <p>Ask our AI anything.</p>
 <input placeholder="Type a message…">

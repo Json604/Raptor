@@ -14,17 +14,15 @@ export const NPM_BIN = process.env.NPM_BIN || 'npm'
 const defaultOrigins = [
     'http://localhost:5173',
     'http://localhost:4173',
-    'https://raptor.support',
-    'https://www.raptor.support',
-    'https://raptorfe.netlify.app',
+    'https://raptorscan.netlify.app',
 ]
 
 export const CORS_ORIGINS = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean)
     : defaultOrigins
 
-// Netlify deploy previews: https://<hash>--raptorfe.netlify.app
-export const CORS_ORIGIN_PATTERNS = [/^https:\/\/[a-z0-9-]+--raptorfe\.netlify\.app$/]
+// Netlify deploy previews: https://<hash>--raptorscan.netlify.app
+export const CORS_ORIGIN_PATTERNS = [/^https:\/\/[a-z0-9-]+--raptorscan\.netlify\.app$/]
 
 // Repo scans are the memory-heavy part, so they run one at a time.
 export const MAX_CONCURRENT_REPO_SCANS = Number(process.env.MAX_CONCURRENT_REPO_SCANS) || 1

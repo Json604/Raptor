@@ -2,7 +2,7 @@
 
 **Is your app leaking your API keys?** Raptor is a free security scanner for apps built fast with AI tools. Paste a live site, a public GitHub repo, or both. It finds leaked keys, exposed files and missing protections, then explains each one in plain English with a copy-paste fix.
 
-Live at **[raptor.support](https://raptor.support)**. No sign-up.
+Live at **[raptorscan.netlify.app](https://raptorscan.netlify.app)**. No sign-up.
 
 ## What it checks
 
@@ -56,7 +56,7 @@ Repo scans run one at a time (the server has 1 GB of RAM); queued jobs report th
 ## Deploy
 
 - **API + demo site** → DigitalOcean droplet: `./deploy/deploy.sh`. Caddy terminates TLS in front of the container. The site blocks are in `deploy/Caddyfile.raptor`.
-- **Frontend** → Netlify site `raptorfe`, base directory `frontend/`; `frontend/netlify.toml` holds the build settings, the API URL and the security headers.
+- **Frontend** → Netlify site `raptorscan`, base directory `frontend/`; `frontend/netlify.toml` holds the build settings, the API URL and the security headers.
 
 ## How Raptor protects itself
 

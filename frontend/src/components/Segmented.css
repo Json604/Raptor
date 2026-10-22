@@ -22,9 +22,7 @@
   transition: transform 260ms var(--ease-out);
 }
 
-@media (prefers-color-scheme: dark) {
-  .segmented-thumb { background: #636366; box-shadow: none; }
-}
+:root[data-theme="dark"] .segmented-thumb { background: #636366; box-shadow: none; }
 
 .segmented-option {
   position: relative;

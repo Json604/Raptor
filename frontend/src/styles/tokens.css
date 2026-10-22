@@ -1,13 +1,13 @@
 /*
- * Design tokens. Light first, dark follows the system setting (Apple HIG:
- * don't offer an app-specific appearance switch).
+ * Design tokens. Light by default; dark when the visitor picks it with the
+ * switch in the nav (saved in localStorage, applied by /theme.js before paint).
  *
  * Apple blue marks what you can tap: buttons, links, focus, progress. Severity
  * colors mark findings. The brand orange lives only in the logo. No color ever
  * means two things (HIG: "Avoid using the same color to mean different things").
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* Surfaces */
   --bg: #ffffff;
@@ -96,8 +96,9 @@
   :root { --gutter: 32px; }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
     --bg: #000000;
     --bg-secondary: #101011;
     --surface: #1c1c1e;
@@ -146,5 +147,4 @@
     --glass-highlight: rgba(255, 255, 255, 0.1);
     --glass-shadow: rgba(0, 0, 0, 0.35);
     --glass-shadow-condensed: rgba(0, 0, 0, 0.55);
-  }
 }

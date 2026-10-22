@@ -1,5 +1,5 @@
-// Light by default; the nav switch flips to dark and remembers it.
-// public/theme.js applies the saved choice before first paint.
+// Dark by default; the nav switch flips to light and remembers it.
+// public/theme.js applies the default or the saved choice before first paint.
 export type Theme = 'light' | 'dark'
 
 const STORAGE_KEY = 'raptor-theme'

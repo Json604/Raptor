@@ -130,3 +130,25 @@
   }
   .nav-icon:hover { background: var(--fill); }
 }
+
+/*
+ * Light mode: minimal and linear. The same frosted white glass, edged with a crisp
+ * hairline border instead of a spreading shadow, and higher-contrast links and
+ * icons. Colors only; the pill's shape and spacing are the same as dark mode.
+ */
+:root:not([data-theme='dark']) .nav-pill,
+:root:not([data-theme='dark']) .nav[data-scrolled='true'] .nav-pill {
+  box-shadow:
+    0 0 0 1px #e5e5e5,
+    0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+:root:not([data-theme='dark']) .nav-brand { color: #18181b; }
+
+:root:not([data-theme='dark']) .nav-link,
+:root:not([data-theme='dark']) .nav-icon { color: #52525b; }
+
+@media (hover: hover) and (pointer: fine) {
+  :root:not([data-theme='dark']) .nav-link:hover,
+  :root:not([data-theme='dark']) .nav-icon:hover { color: #18181b; }
+}

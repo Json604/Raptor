@@ -1,6 +1,7 @@
 /*
- * Design tokens. Light by default; dark when the visitor picks it with the
- * switch in the nav (saved in localStorage, applied by /theme.js before paint).
+ * Design tokens. The site opens dark (/theme.js sets data-theme="dark" before
+ * paint); the switch in the nav flips to light and remembers it. These :root
+ * values are the light theme.
  *
  * Apple blue marks what you can tap: buttons, links, focus, progress. Severity
  * colors mark findings. The brand orange lives only in the logo. No color ever
